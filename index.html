@@ -309,6 +309,7 @@ function startEngine(video, cipher, onUnsupported){
     try{
       sb = makeSB();
       try{ sb.mode = "segments"; }catch(e){}
+      window.__sb = sb; window.__ms = ms;
       try{ ms.duration = DUR[name]; }catch(e){}
       const r0 = await fetchRange(urls, 0, initEnd);
       const b0 = new Uint8Array(await r0.arrayBuffer());
