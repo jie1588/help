@@ -331,11 +331,13 @@ function startEngine(video, cipher, onUnsupported){
       console.log("[pump] resp my=" + my + " status=" + resp.status);
       while(true){
         const chunk = await reader.read();
-        if(chunk.done){ break; }
+        if(chunk.done){ console.log("[pump] reader done my=" + my); break; }
         if(aborted || my !== token){ console.log("[pump] stale exit my=" + my + " token=" + token); return; }
+        console.log("[pump] chunk my=" + my + " n=" + chunk.value.byteLength + " off=" + off);
         const bytes = decBytes(off, new Uint8Array(chunk.value));
         off += chunk.value.byteLength;
         await appendBuf(sb, video, bytes);
+        console.log("[pump] appended my=" + my + " updating=" + sb.updating);
         if(aborted || my !== token){ console.log("[pump] stale post-append my=" + my); return; }
         if(firstAppend){
           firstAppend = false;
