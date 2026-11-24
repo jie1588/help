@@ -324,17 +324,19 @@ function startEngine(video, cipher, onUnsupported){
   async function pump(from){
     const my = ++token;
     let off = from, firstAppend = true;
+    console.log("[pump] start my=" + my + " from=" + from);
     try{
       const resp = await fetchRange(urls, off);
       reader = resp.body.getReader();
+      console.log("[pump] resp my=" + my + " status=" + resp.status);
       while(true){
         const chunk = await reader.read();
         if(chunk.done){ break; }
-        if(aborted || my !== token){ return; }
+        if(aborted || my !== token){ console.log("[pump] stale exit my=" + my + " token=" + token); return; }
         const bytes = decBytes(off, new Uint8Array(chunk.value));
         off += chunk.value.byteLength;
         await appendBuf(sb, video, bytes);
-        if(aborted || my !== token){ return; }
+        if(aborted || my !== token){ console.log("[pump] stale post-append my=" + my); return; }
         if(firstAppend){
           firstAppend = false;
           try{ if(video.paused || video.readyState < 3){ video.play(); } }catch(e){}
@@ -342,6 +344,7 @@ function startEngine(video, cipher, onUnsupported){
       }
       if(my === token && !aborted){ try{ ms.endOfStream(); }catch(e){} }
     }catch(e){
+      console.log("[pump] catch my=" + my + " token=" + token + " err=" + e.name + ":" + e.message);
       if(aborted || my !== token){ return; }
       setTimeout(function(){ if(!aborted && my === token){ pump(off); } }, 2000);
     }
@@ -350,9 +353,10 @@ function startEngine(video, cipher, onUnsupported){
   /* 拖到未缓冲位置：中断旧流 → 重置分片解析器 → 从目标分片重新拉取 */
   function restartPump(chosen){
     token++;
+    console.log("[restart] token=" + token + " chosen=" + chosen + " updating=" + sb.updating);
     try{ if(reader){ reader.cancel(); } }catch(e){}
     function begin(){
-      try{ if(sb && !sb.updating){ sb.abort(); } }catch(e){}
+      try{ if(sb && !sb.updating){ sb.abort(); console.log("[restart] sb.abort done"); } }catch(e){ console.log("[restart] abort err " + e.name); }
       pump(chosen);
     }
     if(sb && sb.updating){ sb.addEventListener("updateend", begin, { once: true }); }
@@ -362,6 +366,7 @@ function startEngine(video, cipher, onUnsupported){
   video.addEventListener("seeking", function(){
     if(aborted || !initDone){ return; }
     const t = video.currentTime;
+    console.log("[seek] t=" + t + " inBuf=" + inRange(sb, t));
     if(inRange(sb, t)){ return; }
     let chosen = initEnd;
     for(let i = 1; i < flat.length; i += 2){
