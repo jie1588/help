@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>能力诊断</title>
+<style>
+body{font-family:monospace;margin:0;padding:14px;font-size:15px;line-height:1.55;word-break:break-all;background:#fff;color:#111}
+h2{font-size:17px;margin:14px 0 6px}
+.ok{color:#0a7d23;font-weight:bold}.no{color:#c00;font-weight:bold}.mut{color:#777}
+.row{padding:2px 0;border-bottom:1px solid #eee}
+</style>
+</head>
+<body>
+<h2>能力诊断</h2>
+<div id="out"></div>
+<script>
+(function(){
+ var out=document.getElementById('out');
+ function line(html){var d=document.createElement('div');d.className='row';d.innerHTML=html;out.appendChild(d);}
+ function b(v){return v?'<span class="ok">是</span>':'<span class="no">否</span>';}
+ var codecs=[
+  'avc1.640028, mp4a.40.2','avc1.640028','avc1.4d4028','avc1.42e028','avc1.42c028',
+  'avc1.64001f','avc1.4d401f','avc1.42e01e','avc1.64001e','mp4a.40.2','avc1.640029','avc1.64002a'
+ ];
+ line('<b>UA</b><br>'+navigator.userAgent);
+ var MS=window.MediaSource||window.WebKitMediaSource||null;
+ line('<b>MediaSource(标准)</b>: '+b(!!window.MediaSource));
+ line('<b>WebKitMediaSource(前缀)</b>: '+b(!!window.WebKitMediaSource));
+ line('<b>MSE 总入口</b>: '+b(!!MS));
+ if(MS){
+  line('<b>SourceBuffer</b>: '+b(!!(window.SourceBuffer||window.WebKitSourceBuffer)));
+  codecs.forEach(function(c){
+   var t='video/mp4; codecs="'+c+'"';
+   var r='';
+   try{r=MS.isTypeSupported(t)?'支持':'不支持';}catch(e){r='异常:'+e.message;}
+   line('MSE '+c+' : <span class="'+(r==='支持'?'ok':'no')+'">'+r+'</span>');
+  });
+  try{line('MSE 裸 video/mp4 : '+MS.isTypeSupported('video/mp4'));}catch(e){line('MSE 裸 video/mp4 异常');}
+ }
+ var v=document.createElement('video');
+ line('<b>--- 原生 video canPlayType（决定原生兜底）---</b>');
+ codecs.forEach(function(c){
+  var r='';
+  try{r=v.canPlayType('video/mp4; codecs="'+c+'"')||'不支持';}catch(e){r='异常';}
+  line('原生 '+c+' : <b>'+r+'</b>');
+ });
+ line('<b>fetch</b>: '+b(typeof fetch==='function'));
+ line('<b>ReadableStream</b>: '+b(typeof ReadableStream==='function'));
+ line('<b>TextDecoder</b>: '+b(typeof TextDecoder==='function'));
+ line('<b>URL.createObjectURL</b>: '+b(typeof URL!=='undefined'&&typeof URL.createObjectURL==='function'));
+ line('<b>video.srcObject 支持</b>: '+b('srcObject' in v));
+ line('<span class="mut">诊断完成，请截图本页</span>');
+})();
+</script>
+</body>
+</html>
