@@ -194,17 +194,30 @@ const PROXY_PREFIXES = [
 ].map(_d);
 
 /* ===== 加密播放引擎：MSE + 分片索引，支持自动播放/总时长/拖动 ===== */
-const MSE_CANDIDATES = [
-  'avc1.640028, mp4a.40.2',
-  'avc1.64001f, mp4a.40.2',
-  'avc1.4d4028, mp4a.40.2',
-  'avc1.42e028, mp4a.40.2'
+/* 兼容夸克 U4 / QQ X5 / 百度 T7 等私有内核：取标准或带前缀的 MediaSource */
+const MS_CTX = window.MediaSource || window.WebKitMediaSource || null;
+/* 由高到低、由精确到宽松，最后一项空串 = 不带 codecs 的 video/mp4 */
+const CODEC_PAIRS = [
+  'avc1.640028,mp4a.40.2',
+  'avc1.64001f,mp4a.40.2',
+  'avc1.4d4028,mp4a.40.2',
+  'avc1.4d401f,mp4a.40.2',
+  'avc1.42e028,mp4a.40.2',
+  'avc1.42e01e,mp4a.40.2',
+  'avc1.640028',
+  'avc1.42e01e',
+  'avc1.42c01e',
+  ''
 ];
+function typeOf(pair){ return pair ? ('video/mp4; codecs="' + pair + '"') : 'video/mp4'; }
+function compactOf(t){ return t.replace(/; /g, ';').replace(/, /g, ','); }
 let MSE_CODEC = "";
-if("MediaSource" in window && window.MediaSource){
-  for(let ci = 0; ci < MSE_CANDIDATES.length; ci++){
-    const mt = 'video/mp4; codecs="' + MSE_CANDIDATES[ci] + '"';
-    if(MediaSource.isTypeSupported(mt)){ MSE_CODEC = mt; break; }
+if(MS_CTX && typeof MS_CTX.isTypeSupported === "function"){
+  for(let ci = 0; ci < CODEC_PAIRS.length; ci++){
+    const t = typeOf(CODEC_PAIRS[ci]);
+    let ok = false;
+    try{ ok = MS_CTX.isTypeSupported(t) || MS_CTX.isTypeSupported(compactOf(t)); }catch(e){}
+    if(ok){ MSE_CODEC = t; break; }
   }
 }
 
@@ -259,12 +272,12 @@ function inRange(sb, t){
   return false;
 }
 
-function startEngine(video, cipher){
+function startEngine(video, cipher, onUnsupported){
   const urls = PROXY_PREFIXES.map(function(p){ return p + _d(cipher); });
   const name = _d(cipher).match(/\/([a-z0-9-]+)\.dat/)[1];
   const flat = IDX[name];
   const initEnd = flat[0];
-  const ms = new MediaSource();
+  const ms = new MS_CTX();
   const blobUrl = URL.createObjectURL(ms);
   video.src = blobUrl;
   let sb = null, aborted = false, reader = null, token = 0, initDone = false;
@@ -276,22 +289,41 @@ function startEngine(video, cipher){
   }
   video._abortEngine = abortAll;
 
+  /* 检测可能误报，addSourceBuffer 仍按 精确→宽松 全部尝试一遍 */
+  function makeSB(){
+    const tries = [];
+    if(MSE_CODEC){ tries.push(MSE_CODEC); }
+    for(let i = 0; i < CODEC_PAIRS.length; i++){
+      const t = typeOf(CODEC_PAIRS[i]);
+      if(tries.indexOf(t) < 0){ tries.push(t); }
+    }
+    let lastErr = null;
+    for(let i = 0; i < tries.length; i++){
+      try{ return ms.addSourceBuffer(tries[i]); }
+      catch(e){ lastErr = e; }
+    }
+    throw lastErr || new Error("mse unsupported");
+  }
+
   ms.addEventListener("sourceopen", async function(){
     try{
-      sb = ms.addSourceBuffer(MSE_CODEC);
-      sb.mode = "segments";
+      sb = makeSB();
+      try{ sb.mode = "segments"; }catch(e){}
       try{ ms.duration = DUR[name]; }catch(e){}
       const r0 = await fetchRange(urls, 0, initEnd);
       const b0 = new Uint8Array(await r0.arrayBuffer());
       await appendBuf(sb, video, decBytes(0, b0));
       initDone = true;
       pump(initEnd);
-    }catch(e){ retryLater(initEnd); }
+    }catch(e){
+      if(aborted){ return; }
+      if(typeof onUnsupported === "function"){ onUnsupported(); }
+    }
   });
 
   async function pump(from){
     const my = ++token;
-    let off = from;
+    let off = from, firstAppend = true;
     try{
       const resp = await fetchRange(urls, off);
       reader = resp.body.getReader();
@@ -303,29 +335,47 @@ function startEngine(video, cipher){
         off += chunk.value.byteLength;
         await appendBuf(sb, video, bytes);
         if(aborted || my !== token){ return; }
+        if(firstAppend){
+          firstAppend = false;
+          try{ if(video.paused || video.readyState < 3){ video.play(); } }catch(e){}
+        }
       }
       if(my === token && !aborted){ try{ ms.endOfStream(); }catch(e){} }
     }catch(e){
       if(aborted || my !== token){ return; }
-      retryLater(off);
+      setTimeout(function(){ if(!aborted && my === token){ pump(off); } }, 2000);
     }
   }
 
-  function retryLater(off){
-    setTimeout(function(){ if(!aborted){ pump(off); } }, 2000);
+  /* 拖到未缓冲位置：中断旧流 → 重置分片解析器 → 从目标分片重新拉取 */
+  function restartPump(chosen){
+    token++;
+    try{ if(reader){ reader.cancel(); } }catch(e){}
+    function begin(){
+      try{ if(sb && !sb.updating){ sb.abort(); } }catch(e){}
+      pump(chosen);
+    }
+    if(sb && sb.updating){ sb.addEventListener("updateend", begin, { once: true }); }
+    else{ begin(); }
   }
 
   video.addEventListener("seeking", function(){
     if(aborted || !initDone){ return; }
     const t = video.currentTime;
     if(inRange(sb, t)){ return; }
-    token++;
-    try{ if(reader){ reader.cancel(); } }catch(e){}
     let chosen = initEnd;
     for(let i = 1; i < flat.length; i += 2){
       if(flat[i] <= t * 1000){ chosen = flat[i + 1]; } else { break; }
     }
-    pump(chosen);
+    restartPump(chosen);
+  });
+
+  /* 数据到达后若仍卡在等待态，主动恢复播放 */
+  video.addEventListener("waiting", function(){
+    if(aborted || !sb){ return; }
+    if(inRange(sb, video.currentTime)){
+      try{ video.play(); }catch(e){}
+    }
   });
 }
 
@@ -350,8 +400,10 @@ function openPlayer(row, v){
   video.setAttribute("disablePictureInPicture", "true");
   box._video = video;
 
-  if(MSE_CODEC){
-    startEngine(video, v.地址);
+  if(MS_CTX){
+    startEngine(video, v.地址, function(){
+      box.innerHTML = '<div style="padding:24px;color:#888;font-size:14px">当前浏览器版本过低，请升级后查看</div>';
+    });
     video.addEventListener("contextmenu", function(e){ e.preventDefault(); });
     video.addEventListener("ended", function(){ box.style.display = "none"; });
     box.appendChild(video);
