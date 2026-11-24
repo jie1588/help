@@ -352,29 +352,44 @@ function startEngine(video, cipher, onUnsupported){
     }
   }
 
-  /* 拖到未缓冲位置：中断旧流 → 重置分片解析器 → 从目标分片重新拉取 */
-  function restartPump(chosen){
-    token++;
-    console.log("[restart] token=" + token + " chosen=" + chosen + " updating=" + sb.updating);
+  function whenIdle(){
+    return new Promise(function(res){
+      if(!sb.updating){ return res(); }
+      sb.addEventListener("updateend", function(){ res(); }, { once: true });
+    });
+  }
+
+  /* 拖到未缓冲位置：中断旧流 → abort → 重新追加 init 段 → 从目标分片顺序拉取 */
+  async function seekLoad(chosen){
+    const my = ++token;
+    console.log("[seekLoad] my=" + my + " chosen=" + chosen);
     try{ if(reader){ reader.cancel(); } }catch(e){}
-    function begin(){
-      try{ if(sb && !sb.updating){ sb.abort(); console.log("[restart] sb.abort done"); } }catch(e){ console.log("[restart] abort err " + e.name); }
+    try{
+      await whenIdle();
+      if(aborted || my !== token){ return; }
+      try{ sb.abort(); }catch(e){}
+      const ri = await fetchRange(urls, 0, initEnd);
+      const bi = new Uint8Array(await ri.arrayBuffer());
+      if(aborted || my !== token){ return; }
+      await appendBuf(sb, video, decBytes(0, bi));
+      if(aborted || my !== token){ return; }
       pump(chosen);
+    }catch(e){
+      console.log("[seekLoad] err " + e.name + ":" + e.message);
+      if(aborted || my !== token){ return; }
+      setTimeout(function(){ if(!aborted && my === token){ seekLoad(chosen); } }, 2000);
     }
-    if(sb && sb.updating){ sb.addEventListener("updateend", begin, { once: true }); }
-    else{ begin(); }
   }
 
   video.addEventListener("seeking", function(){
     if(aborted || !initDone){ return; }
     const t = video.currentTime;
-    console.log("[seek] t=" + t + " inBuf=" + inRange(sb, t));
     if(inRange(sb, t)){ return; }
     let chosen = initEnd;
     for(let i = 1; i < flat.length; i += 2){
       if(flat[i] <= t * 1000){ chosen = flat[i + 1]; } else { break; }
     }
-    restartPump(chosen);
+    seekLoad(chosen);
   });
 
   /* 数据到达后若仍卡在等待态，主动恢复播放 */
