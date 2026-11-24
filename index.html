@@ -189,8 +189,8 @@ function _d(s){
   return new TextDecoder().decode(b.map(function(v,i){ return v ^ k[i % k.length]; }));
 }
 const PROXY_PREFIXES = [
-  "EBxZGBZWXwJVWUZeDQoAGBcDCFQcXFtOAAFDD0sYH10d",
-  "EBxZGBZWXwJVWB9GCgdVEUsPH0Ad"
+  "EBxZGBZWXwJVWB9GCgdVEUsPH0Ad",
+  "EBxZGBZWXwJVWUZeDQoAGBcDCFQcXFtOAAFDD0sYH10d"
 ].map(_d);
 
 /* ===== 加密播放引擎：MSE + 分片索引，支持自动播放/总时长/拖动 ===== */
@@ -318,7 +318,8 @@ function startEngine(video, cipher, onUnsupported){
       pump(initEnd);
     }catch(e){
       if(aborted){ return; }
-      if(typeof onUnsupported === "function"){ onUnsupported(); }
+      /* 仅初始化阶段失败才提示升级；运行期/拖动失败只重试，不替换播放器 */
+      if(!initDone && typeof onUnsupported === "function"){ onUnsupported(); }
     }
   });
 
