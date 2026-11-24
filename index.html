@@ -350,17 +350,23 @@ function startEngine(video, cipher, onUnsupported){
     return end;
   }
 
+  let fileSize = 0;
   /* 有界窗口加载：每次只拉约 60 秒，Range 确定、可拖动、不依赖长连接 */
   async function loop(){
     if(busy || aborted || !initDone){ return; }
+    if(fileSize && pos >= fileSize){ return; }
     busy = true;
     const my = gen;
     try{
       const now = video.currentTime;
       if(bufferedEnd() - now < 30){
         const endOff = nextBoundary((now + 60) * 1000);
+        /* 跳过无效/重复区间 */
+        if(endOff && endOff <= pos){ busy = false; return; }
         const resp = await fetchRange(urls, pos, endOff || undefined);
         if(my !== gen || aborted){ busy = false; return; }
+        const cr = resp.headers.get("Content-Range");
+        if(cr){ const m = cr.match(/\/(\d+)$/); if(m){ fileSize = parseInt(m[1], 10); } }
         const raw = new Uint8Array(await resp.arrayBuffer());
         const used = raw.byteLength;
         await appendBuf(sb, video, decBytes(pos, raw));
@@ -369,13 +375,13 @@ function startEngine(video, cipher, onUnsupported){
         try{ if(video.paused || video.readyState < 3){ video.play(); } }catch(e){}
       }
     }catch(e){
-      if(my === gen){ setTimeout(loop, 1500); }
+      if(my === gen){ setTimeout(loop, 2000); }
     }
     busy = false;
   }
 
   video.addEventListener("timeupdate", loop);
-  setInterval(loop, 1000);
+  setInterval(loop, 2000);
 
   video.addEventListener("seeking", function(){
     if(aborted || !initDone){ return; }
