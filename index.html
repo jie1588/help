@@ -281,10 +281,11 @@ function startEngine(video, cipher, onUnsupported){
   const blobUrl = URL.createObjectURL(ms);
   video.src = blobUrl;
   let sb = null, aborted = false, initDone = false;
-  let pos = 0, busy = false, gen = 0;
+  let reader = null, token = 0;
 
   function abortAll(){
-    aborted = true; gen++;
+    aborted = true; token++;
+    try{ if(reader){ reader.cancel(); } }catch(e){}
     try{ URL.revokeObjectURL(blobUrl); }catch(e){}
   }
   video._abortEngine = abortAll;
@@ -314,8 +315,7 @@ function startEngine(video, cipher, onUnsupported){
       const b0 = new Uint8Array(await r0.arrayBuffer());
       await appendBuf(sb, video, decBytes(0, b0));
       initDone = true;
-      pos = initEnd;
-      loop();
+      pump(initEnd);
     }catch(e){
       if(aborted){ return; }
       if(typeof onUnsupported === "function"){ onUnsupported(); }
@@ -331,68 +331,43 @@ function startEngine(video, cipher, onUnsupported){
     return off;
   }
 
-  /* 窗口末端之后的下一个分片偏移（作为本次 Range 的结束边界）；0 = 到文件尾 */
-  function nextBoundary(ms){
-    let idx = -1;
-    for(let i = 1; i < flat.length; i += 2){
-      if(flat[i] <= ms){ idx = i; } else { break; }
-    }
-    return (idx >= 0 && idx + 3 < flat.length) ? flat[idx + 3] : 0;
-  }
-
-  /* 当前播放位置所在缓冲区间的末端 */
-  function bufferedEnd(){
-    const now = video.currentTime;
-    let end = now;
-    for(let i = 0; i < sb.buffered.length; i++){
-      if(now >= sb.buffered.start(i) - 0.5 && now <= sb.buffered.end(i) + 0.5){ end = sb.buffered.end(i); }
-    }
-    return end;
-  }
-
-  let fileSize = 0;
-  /* 有界窗口加载：每次只拉约 60 秒，Range 确定、可拖动、不依赖长连接 */
-  async function loop(){
-    if(busy || aborted || !initDone){ return; }
-    if(fileSize && pos >= fileSize){ return; }
-    busy = true;
-    const my = gen;
+  /* 单条流式拉取：一次请求顺序喂入，带背压；失败按当前偏移重试 */
+  async function pump(from){
+    const my = ++token;
+    let off = from, first = true;
     try{
-      const now = video.currentTime;
-      if(bufferedEnd() - now < 30){
-        const endOff = nextBoundary((now + 60) * 1000);
-        /* 跳过无效/重复区间 */
-        if(endOff && endOff <= pos){ busy = false; return; }
-        const resp = await fetchRange(urls, pos, endOff || undefined);
-        if(my !== gen || aborted){ busy = false; return; }
-        const cr = resp.headers.get("Content-Range");
-        if(cr){ const m = cr.match(/\/(\d+)$/); if(m){ fileSize = parseInt(m[1], 10); } }
-        const raw = new Uint8Array(await resp.arrayBuffer());
-        const used = raw.byteLength;
-        await appendBuf(sb, video, decBytes(pos, raw));
-        if(my !== gen || aborted){ busy = false; return; }
-        pos = endOff ? endOff : (pos + used);
-        try{ if(video.paused || video.readyState < 3){ video.play(); } }catch(e){}
+      const resp = await fetchRange(urls, off);
+      if(my !== token || aborted){ return; }
+      reader = resp.body.getReader();
+      while(true){
+        const chunk = await reader.read();
+        if(chunk.done){ break; }
+        if(aborted || my !== token){ return; }
+        const dec = decBytes(off, new Uint8Array(chunk.value));
+        off += chunk.value.byteLength;
+        await appendBuf(sb, video, dec);
+        if(aborted || my !== token){ return; }
+        if(first){
+          first = false;
+          try{ if(video.paused || video.readyState < 3){ video.play(); } }catch(e){}
+        }
       }
+      if(my === token && !aborted){ try{ ms.endOfStream(); }catch(e){} }
     }catch(e){
-      if(my === gen){ setTimeout(loop, 2000); }
+      if(aborted || my !== token){ return; }
+      setTimeout(function(){ pump(off); }, 2000);
     }
-    busy = false;
   }
-
-  video.addEventListener("timeupdate", loop);
-  setInterval(loop, 2000);
 
   video.addEventListener("seeking", function(){
     if(aborted || !initDone){ return; }
     const t = video.currentTime;
     if(inRange(sb, t)){ return; }
-    gen++;
+    token++;
     const target = fragOff(t * 1000);
     function doSeek(){
       try{ if(sb && !sb.updating){ sb.abort(); } }catch(e){}
-      pos = target; busy = false;
-      loop();
+      pump(target);
     }
     if(sb.updating){ sb.addEventListener("updateend", doSeek, { once: true }); }
     else{ doSeek(); }
