@@ -280,11 +280,11 @@ function startEngine(video, cipher, onUnsupported){
   const ms = new MS_CTX();
   const blobUrl = URL.createObjectURL(ms);
   video.src = blobUrl;
-  let sb = null, aborted = false, reader = null, token = 0, initDone = false;
+  let sb = null, aborted = false, initDone = false;
+  let pos = 0, busy = false, gen = 0;
 
   function abortAll(){
-    aborted = true; token++;
-    try{ if(reader){ reader.cancel(); } }catch(e){}
+    aborted = true; gen++;
     try{ URL.revokeObjectURL(blobUrl); }catch(e){}
   }
   video._abortEngine = abortAll;
@@ -309,89 +309,93 @@ function startEngine(video, cipher, onUnsupported){
     try{
       sb = makeSB();
       try{ sb.mode = "segments"; }catch(e){}
-      window.__sb = sb; window.__ms = ms;
       try{ ms.duration = DUR[name]; }catch(e){}
       const r0 = await fetchRange(urls, 0, initEnd);
       const b0 = new Uint8Array(await r0.arrayBuffer());
       await appendBuf(sb, video, decBytes(0, b0));
       initDone = true;
-      pump(initEnd);
+      pos = initEnd;
+      loop();
     }catch(e){
       if(aborted){ return; }
       if(typeof onUnsupported === "function"){ onUnsupported(); }
     }
   });
 
-  async function pump(from){
-    const my = ++token;
-    let off = from, firstAppend = true;
+  /* 取时间 ms 对应分片的字节偏移（最后一个 t ≤ ms 的分片） */
+  function fragOff(ms){
+    let off = initEnd;
+    for(let i = 1; i < flat.length; i += 2){
+      if(flat[i] <= ms){ off = flat[i + 1]; } else { break; }
+    }
+    return off;
+  }
+
+  /* 窗口末端之后的下一个分片偏移（作为本次 Range 的结束边界）；0 = 到文件尾 */
+  function nextBoundary(ms){
+    let idx = -1;
+    for(let i = 1; i < flat.length; i += 2){
+      if(flat[i] <= ms){ idx = i; } else { break; }
+    }
+    return (idx >= 0 && idx + 3 < flat.length) ? flat[idx + 3] : 0;
+  }
+
+  /* 当前播放位置所在缓冲区间的末端 */
+  function bufferedEnd(){
+    const now = video.currentTime;
+    let end = now;
+    for(let i = 0; i < sb.buffered.length; i++){
+      if(now >= sb.buffered.start(i) - 0.5 && now <= sb.buffered.end(i) + 0.5){ end = sb.buffered.end(i); }
+    }
+    return end;
+  }
+
+  /* 有界窗口加载：每次只拉约 60 秒，Range 确定、可拖动、不依赖长连接 */
+  async function loop(){
+    if(busy || aborted || !initDone){ return; }
+    busy = true;
+    const my = gen;
     try{
-      const resp = await fetchRange(urls, off);
-      reader = resp.body.getReader();
-      while(true){
-        const chunk = await reader.read();
-        if(chunk.done){ break; }
-        if(aborted || my !== token){ return; }
-        const bytes = decBytes(off, new Uint8Array(chunk.value));
-        off += chunk.value.byteLength;
-        await appendBuf(sb, video, bytes);
-        if(aborted || my !== token){ return; }
-        if(firstAppend){
-          firstAppend = false;
-          try{ if(video.paused || video.readyState < 3){ video.play(); } }catch(e){}
-        }
+      const now = video.currentTime;
+      if(bufferedEnd() - now < 30){
+        const endOff = nextBoundary((now + 60) * 1000);
+        const resp = await fetchRange(urls, pos, endOff || undefined);
+        if(my !== gen || aborted){ busy = false; return; }
+        const raw = new Uint8Array(await resp.arrayBuffer());
+        const used = raw.byteLength;
+        await appendBuf(sb, video, decBytes(pos, raw));
+        if(my !== gen || aborted){ busy = false; return; }
+        pos = endOff ? endOff : (pos + used);
+        try{ if(video.paused || video.readyState < 3){ video.play(); } }catch(e){}
       }
-      if(my === token && !aborted){ try{ ms.endOfStream(); }catch(e){} }
     }catch(e){
-      if(aborted || my !== token){ return; }
-      setTimeout(function(){ if(!aborted && my === token){ pump(off); } }, 2000);
+      if(my === gen){ setTimeout(loop, 1500); }
     }
+    busy = false;
   }
 
-  function whenIdle(){
-    return new Promise(function(res){
-      if(!sb.updating){ return res(); }
-      sb.addEventListener("updateend", function(){ res(); }, { once: true });
-    });
-  }
-
-  /* 拖到未缓冲位置：中断旧流 → abort → 重新追加 init 段 → 从目标分片顺序拉取 */
-  async function seekLoad(chosen){
-    const my = ++token;
-    try{ if(reader){ reader.cancel(); } }catch(e){}
-    try{
-      await whenIdle();
-      if(aborted || my !== token){ return; }
-      try{ sb.abort(); }catch(e){}
-      const ri = await fetchRange(urls, 0, initEnd);
-      const bi = new Uint8Array(await ri.arrayBuffer());
-      if(aborted || my !== token){ return; }
-      await appendBuf(sb, video, decBytes(0, bi));
-      if(aborted || my !== token){ return; }
-      pump(chosen);
-    }catch(e){
-      if(aborted || my !== token){ return; }
-      setTimeout(function(){ if(!aborted && my === token){ seekLoad(chosen); } }, 2000);
-    }
-  }
+  video.addEventListener("timeupdate", loop);
+  setInterval(loop, 1000);
 
   video.addEventListener("seeking", function(){
     if(aborted || !initDone){ return; }
     const t = video.currentTime;
     if(inRange(sb, t)){ return; }
-    let chosen = initEnd;
-    for(let i = 1; i < flat.length; i += 2){
-      if(flat[i] <= t * 1000){ chosen = flat[i + 1]; } else { break; }
+    gen++;
+    const target = fragOff(t * 1000);
+    function doSeek(){
+      try{ if(sb && !sb.updating){ sb.abort(); } }catch(e){}
+      pos = target; busy = false;
+      loop();
     }
-    seekLoad(chosen);
+    if(sb.updating){ sb.addEventListener("updateend", doSeek, { once: true }); }
+    else{ doSeek(); }
   });
 
   /* 数据到达后若仍卡在等待态，主动恢复播放 */
   video.addEventListener("waiting", function(){
     if(aborted || !sb){ return; }
-    if(inRange(sb, video.currentTime)){
-      try{ video.play(); }catch(e){}
-    }
+    if(inRange(sb, video.currentTime)){ try{ video.play(); }catch(e){} }
   });
 }
 
