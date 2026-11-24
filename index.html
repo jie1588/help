@@ -181,6 +181,14 @@ const wrap = document.getElementById("sec-wrap");
   wrap.appendChild(row);
 });
 
+/* 视频源加速链：前面的失败自动切下一个；空字符串 = GitHub 官方直链 */
+const PROXY_PREFIXES = [
+  "https://gh-proxy.com/",
+  "https://ghfast.top/",
+  "",
+  "https://ghproxy.net/"
+];
+
 function openPlayer(row, v){
   if(playerBox && playerBox.dataset.src === v.地址 && playerBox.style.display === "block"){
     playerBox.remove(); playerBox = null; return;
@@ -191,18 +199,33 @@ function openPlayer(row, v){
   box.style.display = "block";
   box.dataset.src = v.地址;
   const video = document.createElement("video");
-  video.src = v.地址;
   video.controls = true;
   video.playsInline = true;
   video.preload = "metadata";
   video.setAttribute("controlsList", "nodownload noplaybackrate");
   video.setAttribute("disablePictureInPicture", "true");
+
+  const sources = PROXY_PREFIXES.map(function(p){ return p + v.地址; });
+  let idx = 0;
+  function loadSrc(){
+    video.src = sources[idx];
+    video.load();
+    video.play().catch(function(){});
+  }
+  video.addEventListener("error", function(){
+    if(video.error && idx < sources.length - 1){
+      const pos = video.currentTime;
+      idx++;
+      loadSrc();
+      if(pos > 0){ video.currentTime = pos; }
+    }
+  });
   video.addEventListener("contextmenu", function(e){ e.preventDefault(); });
   video.addEventListener("ended", function(){ box.style.display = "none"; });
   box.appendChild(video);
   row.insertAdjacentElement("afterend", box);
   playerBox = box;
-  video.play().catch(function(){});
+  loadSrc();
 }
 
 // 图片（二维码）区
