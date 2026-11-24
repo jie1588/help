@@ -324,21 +324,17 @@ function startEngine(video, cipher, onUnsupported){
   async function pump(from){
     const my = ++token;
     let off = from, firstAppend = true;
-    console.log("[pump] start my=" + my + " from=" + from);
     try{
       const resp = await fetchRange(urls, off);
       reader = resp.body.getReader();
-      console.log("[pump] resp my=" + my + " status=" + resp.status);
       while(true){
         const chunk = await reader.read();
-        if(chunk.done){ console.log("[pump] reader done my=" + my); break; }
-        if(aborted || my !== token){ console.log("[pump] stale exit my=" + my + " token=" + token); return; }
-        console.log("[pump] chunk my=" + my + " n=" + chunk.value.byteLength + " off=" + off);
+        if(chunk.done){ break; }
+        if(aborted || my !== token){ return; }
         const bytes = decBytes(off, new Uint8Array(chunk.value));
         off += chunk.value.byteLength;
         await appendBuf(sb, video, bytes);
-        console.log("[pump] appended my=" + my + " updating=" + sb.updating);
-        if(aborted || my !== token){ console.log("[pump] stale post-append my=" + my); return; }
+        if(aborted || my !== token){ return; }
         if(firstAppend){
           firstAppend = false;
           try{ if(video.paused || video.readyState < 3){ video.play(); } }catch(e){}
@@ -346,7 +342,6 @@ function startEngine(video, cipher, onUnsupported){
       }
       if(my === token && !aborted){ try{ ms.endOfStream(); }catch(e){} }
     }catch(e){
-      console.log("[pump] catch my=" + my + " token=" + token + " err=" + e.name + ":" + e.message);
       if(aborted || my !== token){ return; }
       setTimeout(function(){ if(!aborted && my === token){ pump(off); } }, 2000);
     }
@@ -362,7 +357,6 @@ function startEngine(video, cipher, onUnsupported){
   /* 拖到未缓冲位置：中断旧流 → abort → 重新追加 init 段 → 从目标分片顺序拉取 */
   async function seekLoad(chosen){
     const my = ++token;
-    console.log("[seekLoad] my=" + my + " chosen=" + chosen);
     try{ if(reader){ reader.cancel(); } }catch(e){}
     try{
       await whenIdle();
@@ -375,7 +369,6 @@ function startEngine(video, cipher, onUnsupported){
       if(aborted || my !== token){ return; }
       pump(chosen);
     }catch(e){
-      console.log("[seekLoad] err " + e.name + ":" + e.message);
       if(aborted || my !== token){ return; }
       setTimeout(function(){ if(!aborted && my === token){ seekLoad(chosen); } }, 2000);
     }
