@@ -195,23 +195,23 @@ const PROXY_PREFIXES = [
   "EBxZGBZWXwJVWEJEFxBURgsJBAI="
 ].map(_d);
 
-function openPlayer(row, v){
-  if(playerBox && playerBox.dataset.src === v.地址 && playerBox.style.display === "block"){
-    playerBox.remove(); playerBox = null; return;
+/* 选一个本机支持的 H.264/AAC 编码声明 */
+const MSE_CANDIDATES = [
+  'avc1.640028, mp4a.40.2',
+  'avc1.64001f, mp4a.40.2',
+  'avc1.4d4028, mp4a.40.2',
+  'avc1.42e028, mp4a.40.2'
+];
+let MSE_CODEC = "";
+if("MediaSource" in window && window.MediaSource){
+  for(let i = 0; i < MSE_CANDIDATES.length; i++){
+    const t = 'video/mp4; codecs="' + MSE_CANDIDATES[i] + '"';
+    if(MediaSource.isTypeSupported(t)){ MSE_CODEC = t; break; }
   }
-  if(playerBox){ playerBox.remove(); playerBox = null; }
-  const box = document.createElement("div");
-  box.className = "player-box";
-  box.style.display = "block";
-  box.dataset.src = v.地址;
-  const video = document.createElement("video");
-  video.controls = true;
-  video.playsInline = true;
-  video.preload = "metadata";
-  video.setAttribute("controlsList", "nodownload noplaybackrate");
-  video.setAttribute("disablePictureInPicture", "true");
+}
 
-  const sources = PROXY_PREFIXES.map(function(p){ return p + _d(v.地址); });
+/* 直链兜底：error 自动换源并保留进度 */
+function startDirect(video, sources){
   let idx = 0;
   function loadSrc(){
     video.src = sources[idx];
@@ -226,12 +226,108 @@ function openPlayer(row, v){
       if(pos > 0){ video.currentTime = pos; }
     }
   });
+  loadSrc();
+}
+
+/* MSE 流式喂片：video.src 是 blob，浏览器嗅探器拿不到真实媒体地址 */
+function startMSE(video, sources, onFatal){
+  const ms = new MediaSource();
+  const blobUrl = URL.createObjectURL(ms);
+  video.src = blobUrl;
+  let aborted = false, reader = null, fatalFired = false;
+  function fail(){
+    if(aborted || fatalFired){ return; }
+    fatalFired = true;
+    try{ if(reader){ reader.cancel(); } }catch(e){}
+    try{ URL.revokeObjectURL(blobUrl); }catch(e){}
+    onFatal();
+  }
+  ms.addEventListener("sourceopen", function(){
+    let sb;
+    try{ sb = ms.addSourceBuffer(MSE_CODEC); }catch(e){ fail(); return; }
+    sb.mode = "segments";
+    let u = 0;
+    function waitUpdate(){
+      return new Promise(function(res){
+        if(!sb.updating){ res(); }
+        else{ sb.addEventListener("updateend", function h(){ if(!sb.updating){ res(); } else { sb.addEventListener("updateend", h, { once:true }); } }, { once:true }); }
+      });
+    }
+    async function pump(){
+      try{
+        const resp = await fetch(sources[u]);
+        if(!resp.ok || !resp.body){ throw new Error("bad response"); }
+        reader = resp.body.getReader();
+        while(true){
+          const chunk = await reader.read();
+          if(chunk.done){ break; }
+          if(aborted){ return; }
+          await waitUpdate();
+          let done = false;
+          while(!done){
+            try{ sb.appendBuffer(chunk.value); done = true; }
+            catch(e){
+              if(e.name === "QuotaExceededError"){
+                const cut = Math.max(0, video.currentTime - 40);
+                sb.remove(0, cut);
+                await waitUpdate();
+              } else { throw e; }
+            }
+          }
+          await waitUpdate();
+        }
+        if(aborted){ return; }
+        await waitUpdate();
+        try{ ms.endOfStream(); }catch(e){}
+      }catch(e){
+        if(aborted){ return; }
+        u++;
+        if(u < sources.length){ pump(); } else { fail(); }
+      }
+    }
+    pump();
+  });
+  video.addEventListener("error", fail);
+  video._abortMSE = function(){
+    aborted = true;
+    try{ if(reader){ reader.cancel(); } }catch(e){}
+    try{ URL.revokeObjectURL(blobUrl); }catch(e){}
+  };
+  video.play().catch(function(){});
+}
+
+function openPlayer(row, v){
+  if(playerBox && playerBox.dataset.src === v.地址 && playerBox.style.display === "block"){
+    if(playerBox._video && playerBox._video._abortMSE){ playerBox._video._abortMSE(); }
+    playerBox.remove(); playerBox = null; return;
+  }
+  if(playerBox){
+    if(playerBox._video && playerBox._video._abortMSE){ playerBox._video._abortMSE(); }
+    playerBox.remove(); playerBox = null;
+  }
+  const box = document.createElement("div");
+  box.className = "player-box";
+  box.style.display = "block";
+  box.dataset.src = v.地址;
+  const video = document.createElement("video");
+  video.controls = true;
+  video.playsInline = true;
+  video.preload = "metadata";
+  video.setAttribute("controlsList", "nodownload noplaybackrate");
+  video.setAttribute("disablePictureInPicture", "true");
+  box._video = video;
+
+  const sources = PROXY_PREFIXES.map(function(p){ return p + _d(v.地址); });
+  if(MSE_CODEC){
+    startMSE(video, sources, function(){ startDirect(video, sources); });
+  } else {
+    startDirect(video, sources);
+  }
   video.addEventListener("contextmenu", function(e){ e.preventDefault(); });
   video.addEventListener("ended", function(){ box.style.display = "none"; });
   box.appendChild(video);
   row.insertAdjacentElement("afterend", box);
   playerBox = box;
-  loadSrc();
 }
 
 // 图片（二维码）区
