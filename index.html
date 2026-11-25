@@ -312,7 +312,7 @@ function openPlayer(row,v,vi){
 
   const video=document.createElement("video");
   video.playsInline=true;
-  video.preload="metadata";
+  video.preload="auto";
   if(v.封面){ video.poster=v.封面; }
   video.setAttribute("controlsList","nodownload");
   video.setAttribute("disablePictureInPicture","true");
@@ -454,6 +454,11 @@ function openPlayer(row,v,vi){
     flashSeek(side,10);
     showBar();
   }
+  /* 单击只显示/隐藏控制条，不暂停，避免误触；暂停走播放按钮或中间双击 */
+  function toggleBar(){
+    if(box.classList.contains("bar-on")){ hideBar(); }
+    else{ showBar(); }
+  }
   canvas.addEventListener("click",function(e){
     const rect=canvas.getBoundingClientRect();
     const ratioX=(e.clientX-rect.left)/rect.width;
@@ -461,12 +466,12 @@ function openPlayer(row,v,vi){
       clearTimeout(clickTimer); clickTimer=null;
       nudge(ratioX<0.34?-1:(ratioX>0.66?1:0));
       if(ratioX>0.34&&ratioX<0.66){ togglePlay(); }
+      showBar();
       return;
     }
     clickTimer=setTimeout(function(){
-      clickTimer=null; togglePlay();
+      clickTimer=null; toggleBar();
     },280);
-    showBar();
   });
 
   /* 进度更新 */
