@@ -34,11 +34,12 @@
   .play svg{width:11px;height:11px;fill:var(--blue);}
   .row-main{flex:1;min-width:0;}
   .row-name{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .row-desc{font-size:12px;color:var(--text-3);margin-top:1px;}
+  .row-desc{display:inline-block;font-size:12px;color:#565b66;margin-top:5px;background:#e9eaee;
+    padding:2px 12px;border-radius:999px;}
   .badge{flex:0 0 auto;font-size:12px;padding:3px 10px;border-radius:20px;background:var(--blue-soft);
     color:var(--blue);font-weight:500;}
   .badge.alt{background:#fff4e6;color:#de7802;}
-  .row-arrow{flex:0 0 auto;color:var(--blue);font-size:16px;line-height:1;padding-left:2px;}
+  .row-arrow{flex:0 0 auto;color:var(--blue);font-size:20px;line-height:1;padding-left:2px;}
   .player-box{position:fixed;inset:0;display:none;z-index:9999;background:#000;overflow:hidden;}
   /* 真正的video缩到极小移出屏幕，避免被浏览器"视频助手"接管；画面用canvas镜像 */
   .player-box video{position:fixed;left:-300px;top:0;width:120px;height:120px;display:block;background:#000;object-fit:contain;}
@@ -96,12 +97,13 @@
     border:1px solid #c2c6cc;border-radius:8px;padding:13px 16px;margin-bottom:8px;color:var(--text);
     transition:background .15s,border-color .15s;}
   .link-card:hover{background:#fafbfc;border-color:#aab0b8;}
-  .link-card .lk-ico{flex:0 0 auto;width:34px;height:34px;display:flex;align-items:center;justify-content:center;}
-  .link-card .lk-ico svg{width:27px;height:27px;display:block;}
+  .link-card .lk-ico{flex:0 0 auto;width:36px;height:36px;display:flex;align-items:center;justify-content:center;}
+  .link-card .lk-ico svg{width:30px;height:30px;display:block;}
   .link-card .lk-body{flex:1;min-width:0;}
   .link-card .lk-t{font-size:16px;font-weight:600;}
-  .link-card .lk-d{font-size:13px;color:var(--text-3);margin-top:2px;}
-  .link-card .arrow{color:var(--blue);font-size:15px;flex:0 0 auto;}
+  .link-card .lk-d{display:inline-block;font-size:12px;color:#565b66;margin-top:6px;background:#e9eaee;
+    padding:2px 12px;border-radius:999px;}
+  .link-card .arrow{color:var(--blue);font-size:19px;flex:0 0 auto;line-height:1;}
   .qr-block{border:1px solid var(--line);border-radius:8px;padding:14px;background:#fff;text-align:center;
     max-width:260px;margin:10px auto 4px;}
   .qr-block .qr-img{width:100%;display:block;background:#fff;}
@@ -229,7 +231,7 @@ const EXITFS_SVG='<svg viewBox="0 0 1024 1024"><path d="M384 160v224H160M640 160
 const REPLAY_SVG='<svg viewBox="0 0 1024 1024"><path d="M512 192a320 320 0 1 1-304 224" stroke="#fff" stroke-width="74" fill="none" stroke-linecap="round"/><path d="M208 128v224h224" stroke="#fff" stroke-width="74" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const CLOSE_SVG='<svg viewBox="0 0 1024 1024"><path d="M660 180L340 512l320 332" stroke="#fff" stroke-width="90" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 /* 链接卡图标：购卡=钻石(深蓝)，下载=云朵下载(深绿) */
-const ICO_GEM='<svg viewBox="0 0 24 24" fill="#1d4ed8"><path d="M7 3h10l3 4-10 14L4 7l3-4z"/><path d="M4 7h16M9 3l-1.5 4L12 21M15 3l1.5 4L12 21" stroke="#fff" stroke-width="1.1" fill="none"/></svg>';
+const ICO_GEM='<svg viewBox="0 0 24 24"><path d="M7 3h10l3 4-10 14L4 7l3-4z" fill="#1d4ed8"/><path d="M4.6 7h14.8" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/><path d="M9.2 3.2L8.2 7l2.5 10.8" stroke="#fff" stroke-width="1.05" fill="none" stroke-linecap="round"/><path d="M14.8 3.2L15.8 7l-2.5 10.8" stroke="#fff" stroke-width="1.05" fill="none" stroke-linecap="round"/></svg>';
 const ICO_CLOUD='<svg viewBox="0 0 24 24" fill="#15803d"><path d="M7 18.5a4.2 4.2 0 0 1-.6-8.36 5.2 5.2 0 0 1 9.95-1.25A3.95 3.95 0 0 1 17 18.5H7z"/><path d="M12 9.2v5.2M9.6 12.4L12 14.8l2.4-2.4" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
