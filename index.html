@@ -555,22 +555,8 @@ function openPlayer(row,v,vi){
     video.currentTime=0; video.play();
   });
 
-  /* 断点续播 */
-  const posKey="help_pos_"+key+"_"+vi;
-  let resumed=false;
-  video.addEventListener("loadedmetadata",function(){
-    if(resumed) return; resumed=true;
-    const saved=parseFloat(store.get(posKey));
-    if(isFinite(saved)&&saved>15&&saved<video.duration-30){
-      video.currentTime=saved;
-      showToast("已定位到上次观看 "+fmt(saved));
-    }
-  });
-  const saveTimer=setInterval(function(){
-    if(activePlayer===api&&isFinite(video.duration)&&!video.paused&&!video.ended){
-      store.set(posKey,video.currentTime);
-    }
-  },5000);
+  /* 不做断点续播：每次都从头开始，首帧最快、避免远距离跳转卡在转圈 */
+  const saveTimer=0;
 
   /* 轻提示 */
   let toastTimer=null;
