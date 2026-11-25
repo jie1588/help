@@ -31,15 +31,16 @@
   .row:hover{background:#fafbfc;border-color:#d0d3d9;}
   .play{flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:var(--blue-soft);
     display:flex;align-items:center;justify-content:center;}
-  .play svg{width:11px;height:11px;fill:var(--blue);}
+  .play svg{width:15px;height:15px;fill:var(--blue);}
   .row-main{flex:1;min-width:0;}
   .row-name{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .row-desc{display:inline-block;font-size:12px;color:#565b66;margin-top:5px;background:#e9eaee;
-    padding:2px 12px;border-radius:999px;}
+  .row-desc{display:inline-block;font-size:12px;line-height:1.5;color:#565b66;margin-top:6px;background:#f1f2f4;
+    padding:2px 12px;border-radius:999px;max-width:100%;box-sizing:border-box;white-space:nowrap;}
   .badge{flex:0 0 auto;font-size:12px;padding:3px 10px;border-radius:20px;background:var(--blue-soft);
     color:var(--blue);font-weight:500;}
   .badge.alt{background:#fff4e6;color:#de7802;}
-  .row-arrow{flex:0 0 auto;color:var(--blue);font-size:20px;line-height:1;padding-left:2px;}
+  .row-arrow{flex:0 0 auto;display:flex;align-items:center;line-height:1;padding-left:2px;}
+  .row-arrow svg{width:24px;height:24px;display:block;}
   .player-box{position:fixed;inset:0;display:none;z-index:9999;background:#000;overflow:hidden;}
   /* 真正的video缩到极小移出屏幕，避免被浏览器"视频助手"接管；画面用canvas镜像 */
   .player-box video{position:fixed;left:-300px;top:0;width:120px;height:120px;display:block;background:#000;object-fit:contain;}
@@ -101,9 +102,10 @@
   .link-card .lk-ico svg{width:30px;height:30px;display:block;}
   .link-card .lk-body{flex:1;min-width:0;}
   .link-card .lk-t{font-size:16px;font-weight:600;}
-  .link-card .lk-d{display:inline-block;font-size:12px;color:#565b66;margin-top:6px;background:#e9eaee;
-    padding:2px 12px;border-radius:999px;}
-  .link-card .arrow{color:var(--blue);font-size:19px;flex:0 0 auto;line-height:1;}
+  .link-card .lk-d{display:inline-block;font-size:12px;line-height:1.5;color:#565b66;margin-top:6px;background:#f1f2f4;
+    padding:2px 12px;border-radius:999px;max-width:100%;box-sizing:border-box;white-space:nowrap;}
+  .link-card .arrow{flex:0 0 auto;display:flex;align-items:center;line-height:1;}
+  .link-card .arrow svg{width:24px;height:24px;display:block;}
   .qr-block{border:1px solid var(--line);border-radius:8px;padding:14px;background:#fff;text-align:center;
     max-width:260px;margin:10px auto 4px;}
   .qr-block .qr-img{width:100%;display:block;background:#fff;}
@@ -230,9 +232,11 @@ const FS_SVG='<svg viewBox="0 0 1024 1024"><path d="M160 384V160h224M864 384V160
 const EXITFS_SVG='<svg viewBox="0 0 1024 1024"><path d="M384 160v224H160M640 160v224h224M384 864V640H160M640 864V640h224" stroke="#fff" stroke-width="60" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const REPLAY_SVG='<svg viewBox="0 0 1024 1024"><path d="M512 192a320 320 0 1 1-304 224" stroke="#fff" stroke-width="74" fill="none" stroke-linecap="round"/><path d="M208 128v224h224" stroke="#fff" stroke-width="74" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const CLOSE_SVG='<svg viewBox="0 0 1024 1024"><path d="M660 180L340 512l320 332" stroke="#fff" stroke-width="90" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-/* 链接卡图标：购卡=钻石(深蓝)，下载=云朵下载(深绿) */
-const ICO_GEM='<svg viewBox="0 0 24 24"><path d="M7 3h10l3 4-10 14L4 7l3-4z" fill="#1d4ed8"/><path d="M4.6 7h14.8" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/><path d="M9.2 3.2L8.2 7l2.5 10.8" stroke="#fff" stroke-width="1.05" fill="none" stroke-linecap="round"/><path d="M14.8 3.2L15.8 7l-2.5 10.8" stroke="#fff" stroke-width="1.05" fill="none" stroke-linecap="round"/></svg>';
+/* 链接卡图标：购卡=钻石(金色)，下载=云朵下载(深绿) */
+const ICO_GEM='<svg viewBox="0 0 24 24"><path d="M7 3h10l3 4-10 14L4 7l3-4z" fill="#c9962b"/><path d="M4.6 7h14.8" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/><path d="M9.2 3.2L8.2 7l2.5 10.8" stroke="#fff" stroke-width="1.05" fill="none" stroke-linecap="round"/><path d="M14.8 3.2L15.8 7l-2.5 10.8" stroke="#fff" stroke-width="1.05" fill="none" stroke-linecap="round"/></svg>';
 const ICO_CLOUD='<svg viewBox="0 0 24 24" fill="#15803d"><path d="M7 18.5a4.2 4.2 0 0 1-.6-8.36 5.2 5.2 0 0 1 9.95-1.25A3.95 3.95 0 0 1 17 18.5H7z"/><path d="M12 9.2v5.2M9.6 12.4L12 14.8l2.4-2.4" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+/* 完整右侧箭头：实心三角头 + 箭杆，替代残缺的字符箭头 */
+const ARROW_SVG='<svg viewBox="0 0 24 24"><path d="M3.5 12h12.6" stroke="#3370ff" stroke-width="2.3" stroke-linecap="round"/><path d="M12.6 5.2L20 12l-7.4 6.8z" fill="#3370ff"/></svg>';
 function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
 const params=new URLSearchParams(location.search);
@@ -318,7 +322,7 @@ window.addEventListener("popstate",function(){
     '<div class="row-main"><div class="row-name">'+esc(v.名称)+'</div>'+
     '<div class="row-desc">'+esc(v.说明)+'</div></div>'+
     '<div class="'+cls+'">'+esc(v.标签)+'</div>'+
-    '<div class="row-arrow">→</div>';
+    '<div class="row-arrow">'+ARROW_SVG+'</div>';
   row.addEventListener("click",function(){ openPlayer(row,v,vi); });
   wrapEl.appendChild(row);
 });
@@ -730,7 +734,7 @@ const lw=document.getElementById("link-wrap");
   a.href=l.地址; a.target="_blank"; a.rel="noopener";
   a.innerHTML='<span class="lk-ico">'+(idx===0?ICO_GEM:ICO_CLOUD)+'</span>'+
     '<div class="lk-body"><div class="lk-t">'+esc(l.名称)+'</div><div class="lk-d">'+esc(l.说明)+'</div></div>'+
-    '<div class="arrow">→</div>';
+    '<div class="arrow">'+ARROW_SVG+'</div>';
   lw.appendChild(a);
   if(idx===arr.length-1&&me.二维码){
     const qb=document.createElement("div");
