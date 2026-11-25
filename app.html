@@ -34,8 +34,9 @@
   .play svg{width:15px;height:15px;fill:var(--blue);}
   .row-main{flex:0 1 auto;min-width:0;margin-right:auto;display:flex;flex-direction:column;align-items:flex-start;}
   .row-name{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .row-desc{align-self:center;font-size:12px;line-height:1.5;color:#565b66;margin-top:6px;background:#f1f2f4;
-    padding:2px 12px;border-radius:999px;max-width:100%;box-sizing:border-box;white-space:nowrap;}
+  .pill-slot{align-self:center;width:0;height:20px;position:relative;margin-top:6px;}
+  .row-desc,.lk-d{position:absolute;left:0;top:0;transform:translateX(-50%);font-size:12px;line-height:1.5;
+    color:#565b66;background:#f1f2f4;padding:2px 12px;border-radius:999px;box-sizing:border-box;white-space:nowrap;}
   .badge{flex:0 0 auto;font-size:12px;padding:3px 10px;border-radius:20px;background:var(--blue-soft);
     color:var(--blue);font-weight:500;}
   .badge.alt{background:#fff4e6;color:#de7802;}
@@ -102,8 +103,6 @@
   .link-card .lk-ico svg{width:30px;height:30px;display:block;}
   .link-card .lk-body{flex:0 1 auto;min-width:0;margin-right:auto;display:flex;flex-direction:column;align-items:flex-start;}
   .link-card .lk-t{font-size:16px;font-weight:600;white-space:nowrap;}
-  .link-card .lk-d{align-self:center;font-size:12px;line-height:1.5;color:#565b66;margin-top:6px;background:#f1f2f4;
-    padding:2px 12px;border-radius:999px;max-width:100%;box-sizing:border-box;white-space:nowrap;}
   .link-card .arrow{flex:0 0 auto;display:flex;align-items:center;line-height:1;}
   .link-card .arrow svg{width:24px;height:24px;display:block;}
   .qr-block{border:1px solid var(--line);border-radius:8px;padding:14px;background:#fff;text-align:center;
@@ -320,7 +319,7 @@ window.addEventListener("popstate",function(){
   const cls=v.标签==="蓝牙"?"badge":"badge alt";
   row.innerHTML='<div class="play">'+PLAY_SVG+'</div>'+
     '<div class="row-main"><div class="row-name">'+esc(v.名称)+'</div>'+
-    '<div class="row-desc">'+esc(v.说明)+'</div></div>'+
+    '<div class="pill-slot"><span class="row-desc">'+esc(v.说明)+'</span></div></div>'+
     '<div class="'+cls+'">'+esc(v.标签)+'</div>'+
     '<div class="row-arrow">'+ARROW_SVG+'</div>';
   row.addEventListener("click",function(){ openPlayer(row,v,vi); });
@@ -733,7 +732,7 @@ const lw=document.getElementById("link-wrap");
   a.className="link-card";
   a.href=l.地址; a.target="_blank"; a.rel="noopener";
   a.innerHTML='<span class="lk-ico">'+(idx===0?ICO_GEM:ICO_CLOUD)+'</span>'+
-    '<div class="lk-body"><div class="lk-t">'+esc(l.名称)+'</div><div class="lk-d">'+esc(l.说明)+'</div></div>'+
+    '<div class="lk-body"><div class="lk-t">'+esc(l.名称)+'</div><div class="pill-slot"><span class="lk-d">'+esc(l.说明)+'</span></div></div>'+
     '<div class="arrow">'+ARROW_SVG+'</div>';
   lw.appendChild(a);
   if(idx===arr.length-1&&me.二维码){
