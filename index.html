@@ -35,9 +35,6 @@
   .row-main{flex:0 1 auto;min-width:0;margin-right:auto;display:flex;flex-direction:column;align-items:flex-start;}
   .row-name{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .row-desc,.lk-d{font-size:12px;line-height:1.5;color:#565b66;margin-top:4px;white-space:nowrap;}
-  .badge{flex:0 0 auto;font-size:12px;padding:3px 10px;border-radius:20px;background:var(--blue-soft);
-    color:var(--blue);font-weight:500;}
-  .badge.alt{background:#fff4e6;color:#de7802;}
   .row-arrow{flex:0 0 auto;display:flex;align-items:center;line-height:1;padding-left:2px;}
   .row-arrow svg{width:24px;height:24px;display:block;}
   .player-box{position:fixed;inset:0;display:none;z-index:9999;background:#000;overflow:hidden;}
@@ -117,7 +114,6 @@
     h1{font-size:22px;}
     .row{padding:11px 12px;}
     .link-card{padding:13px 12px;}
-    .badge{display:none;}
     .img-card{width:calc(50% - 7px);}
     .timetxt{font-size:11px;}
     .tip{font-size:12px;padding:9px 12px;}
@@ -315,11 +311,9 @@ window.addEventListener("popstate",function(){
 (me.视频||[]).forEach(function(v,vi){
   const row=document.createElement("div");
   row.className="row";
-  const cls=v.标签==="蓝牙"?"badge":"badge alt";
   row.innerHTML='<div class="play">'+PLAY_SVG+'</div>'+
     '<div class="row-main"><div class="row-name">'+esc(v.名称)+'</div>'+
     '<div class="row-desc">'+esc(v.说明)+'</div></div>'+
-    '<div class="'+cls+'">'+esc(v.标签)+'</div>'+
     '<div class="row-arrow">'+ARROW_SVG+'</div>';
   row.addEventListener("click",function(){ openPlayer(row,v,vi); });
   wrapEl.appendChild(row);
