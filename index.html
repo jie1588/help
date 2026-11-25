@@ -17,24 +17,24 @@
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);}
   body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
-    -webkit-font-smoothing:antialiased;line-height:1.75;font-size:16px;}
-  .wrap{max-width:720px;margin:0 auto;padding:52px 24px 88px;}
+    -webkit-font-smoothing:antialiased;line-height:1.6;font-size:15px;}
+  .wrap{max-width:640px;margin:0 auto;padding:36px 20px 60px;}
   .pill{display:inline-block;font-size:13px;padding:4px 12px;border-radius:20px;background:var(--blue-soft);
     color:var(--blue);font-weight:500;margin-bottom:16px;}
   h1{font-size:30px;line-height:1.3;font-weight:700;margin:0 0 10px;letter-spacing:-.5px;}
   .sub{color:var(--text-3);font-size:14px;margin:0 0 28px;}
-  .tip{background:var(--bg-2);border-radius:8px;padding:14px 18px;margin:0 0 36px;font-size:15px;
-    border-left:3px solid var(--blue);}
-  .h2{font-size:16px;font-weight:600;margin:40px 0 14px;color:var(--text-2);letter-spacing:.5px;}
-  .row{display:flex;align-items:center;gap:14px;padding:16px 18px;border:1px solid var(--line);
-    border-radius:8px;margin-bottom:10px;cursor:pointer;transition:background .15s,border-color .15s;background:#fff;}
+  .tip{background:var(--bg-2);border-radius:8px;padding:10px 14px;margin:0 0 24px;font-size:13px;
+    line-height:1.55;border-left:3px solid var(--blue);}
+  .h2{font-size:15px;font-weight:600;margin:26px 0 10px;color:var(--text-2);letter-spacing:.5px;}
+  .row{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);
+    border-radius:8px;margin-bottom:8px;cursor:pointer;transition:background .15s,border-color .15s;background:#fff;}
   .row:hover{background:#fafbfc;border-color:#d0d3d9;}
-  .play{flex:0 0 34px;width:34px;height:34px;border-radius:50%;background:var(--blue-soft);
+  .play{flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:var(--blue-soft);
     display:flex;align-items:center;justify-content:center;}
-  .play svg{width:12px;height:12px;fill:var(--blue);}
+  .play svg{width:11px;height:11px;fill:var(--blue);}
   .row-main{flex:1;min-width:0;}
-  .row-name{font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .row-desc{font-size:13px;color:var(--text-3);margin-top:2px;}
+  .row-name{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .row-desc{font-size:12px;color:var(--text-3);margin-top:1px;}
   .badge{flex:0 0 auto;font-size:12px;padding:3px 10px;border-radius:20px;background:var(--blue-soft);
     color:var(--blue);font-weight:500;}
   .badge.alt{background:#fff4e6;color:#de7802;}
@@ -84,24 +84,25 @@
   .img-card img{width:100%;display:block;border-radius:6px;background:var(--bg-2);}
   .img-card .cap{font-size:13px;color:var(--text-3);margin-top:8px;}
   .link-card{display:flex;align-items:center;justify-content:space-between;gap:12px;text-decoration:none;
-    border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin-bottom:10px;color:var(--text);
+    border:1px solid var(--line);border-radius:8px;padding:13px 16px;margin-bottom:8px;color:var(--text);
     transition:background .15s,border-color .15s;}
   .link-card:hover{background:#fafbfc;border-color:#d0d3d9;}
   .link-card .lk-t{font-size:16px;font-weight:600;}
   .link-card .lk-d{font-size:13px;color:var(--text-3);margin-top:2px;}
   .link-card .arrow{color:var(--blue);font-size:15px;flex:0 0 auto;}
-  .foot{margin-top:52px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--text-3);}
+  .foot{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--text-3);}
   /* 全屏 */
   .player-box:fullscreen{border:none;border-radius:0;}
   .player-box:fullscreen video{max-height:none;height:100%;}
   .player-box:-webkit-full-screen{border:none;border-radius:0;}
   @media (max-width:520px){
-    .wrap{padding:34px 16px 64px;}
-    h1{font-size:24px;}
-    .row{padding:14px;}
+    .wrap{padding:26px 14px 48px;}
+    h1{font-size:22px;}
+    .row{padding:11px 12px;}
     .badge{display:none;}
     .img-card{width:calc(50% - 7px);}
     .timetxt{font-size:11px;}
+    .tip{font-size:12px;padding:9px 12px;}
   }
 </style>
 </head>
@@ -143,55 +144,55 @@ const CONFIG = {
       名称: "星辉", 标题: "星辉使用说明", 隐藏大标题: true,
       链接: [
         { 名称: "24 小时自助购卡", 说明: "点击进入购买页面", 地址: "https://www.qianxun1688.com/liebiao/32C6BA909E50C258" },
-        { 名称: "KK 下载地址", 说明: "复制到手机浏览器打开", 地址: "https://wwsk.lanzouu.com/s/wowkeji" }
+        { 名称: "星辉下载地址", 说明: "点击进入", 地址: "https://wwsk.lanzouu.com/s/wowkeji" }
       ],
       视频: [
-        { 名称: "星辉蓝牙教程", 说明: "用蓝牙点击器操作", 标签: "蓝牙", 封面: "posters/xh-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoUGABQRBxbCFw=" },
-        { 名称: "星辉无障碍教程", 说明: "不用点击器，无障碍模式", 标签: "无障碍", 封面: "posters/xh-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoUGABTXEYYFRgZ" }
+        { 名称: "星辉蓝牙教程", 说明: "点击打开", 标签: "蓝牙", 封面: "posters/xh-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoUGABQRBxbCFw=" },
+        { 名称: "星辉无障碍教程", 说明: "点击打开", 标签: "无障碍", 封面: "posters/xh-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoUGABTXEYYFRgZ" }
       ]
     },
     tx: {
       名称: "天蝎", 标题: "天蝎使用说明",
       链接: [
         { 名称: "24 小时自助购卡", 说明: "点击进入购买页面", 地址: "https://www.qianxun1688.com/liebiao/A28708F6E4B3FEEB" },
-        { 名称: "天蝎下载地址", 说明: "复制到手机浏览器打开", 地址: "https://wwtf.lanzoup.com/b004ilbuzg" }
+        { 名称: "天蝎下载地址", 说明: "点击进入", 地址: "https://wwtf.lanzoup.com/b004ilbuzg" }
       ],
       视频: [
-        { 名称: "天蝎蓝牙教程", 说明: "用蓝牙点击器操作", 标签: "蓝牙", 封面: "posters/tx-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoYCABQRBxbCFw=" },
-        { 名称: "天蝎无障碍教程", 说明: "不用点击器，无障碍模式", 标签: "无障碍", 封面: "posters/tx-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoYCABTXEYYFRgZ" }
+        { 名称: "天蝎蓝牙教程", 说明: "点击打开", 标签: "蓝牙", 封面: "posters/tx-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoYCABQRBxbCFw=" },
+        { 名称: "天蝎无障碍教程", 说明: "点击打开", 标签: "无障碍", 封面: "posters/tx-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoYCABTXEYYFRgZ" }
       ]
     },
     jj: {
       名称: "掘金小能手", 标题: "掘金小能手使用说明",
       链接: [
         { 名称: "24 小时自助购卡", 说明: "点击进入购买页面", 地址: "https://www.qianxun1688.com/liebiao/3553B5D2E8B2D7AE" },
-        { 名称: "掘金小能手下载地址", 说明: "复制到手机浏览器打开", 地址: "https://wwyg.lanzoup.com/b00q0ku0kd" }
+        { 名称: "掘金小能手下载地址", 说明: "点击进入", 地址: "https://wwyg.lanzoup.com/b00q0ku0kd" }
       ],
       视频: [
-        { 名称: "掘金小能手蓝牙教程", 说明: "用蓝牙点击器操作", 标签: "蓝牙", 封面: "posters/jj-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoGGgBQRBxbCFw=" },
-        { 名称: "掘金小能手无障碍教程", 说明: "不用点击器，无障碍模式", 标签: "无障碍", 封面: "posters/jj-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoGGgBTXEYYFRgZ" }
+        { 名称: "掘金小能手蓝牙教程", 说明: "点击打开", 标签: "蓝牙", 封面: "posters/jj-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoGGgBQRBxbCFw=" },
+        { 名称: "掘金小能手无障碍教程", 说明: "点击打开", 标签: "无障碍", 封面: "posters/jj-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoGGgBTXEYYFRgZ" }
       ]
     },
     lbt: {
       名称: "萝卜头", 标题: "萝卜头使用说明",
       链接: [
         { 名称: "24 小时自助购卡", 说明: "点击进入购买页面", 地址: "https://www.qianxun1688.com/liebiao/2A24A4EB84803C74" },
-        { 名称: "萝卜头下载地址", 说明: "复制到手机浏览器打开", 地址: "https://share.feijipan.com/s/h5Ht4o9a" }
+        { 名称: "萝卜头下载地址", 说明: "点击进入", 地址: "https://share.feijipan.com/s/h5Ht4o9a" }
       ],
       视频: [
-        { 名称: "萝卜头蓝牙教程", 说明: "用蓝牙点击器操作", 标签: "蓝牙", 封面: "posters/lbt-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoAElkfUkYYFRgZ" },
-        { 名称: "萝卜头无障碍教程", 说明: "不用点击器，无障碍模式", 标签: "无障碍", 封面: "posters/lbt-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoAElkfUV5CVgVdXA==" }
+        { 名称: "萝卜头蓝牙教程", 说明: "点击打开", 标签: "蓝牙", 封面: "posters/lbt-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoAElkfUkYYFRgZ" },
+        { 名称: "萝卜头无障碍教程", 说明: "点击打开", 标签: "无障碍", 封面: "posters/lbt-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoAElkfUV5CVgVdXA==" }
       ]
     },
     fqy: {
       名称: "风清扬", 标题: "风清扬使用说明",
       链接: [
         { 名称: "24 小时自助购卡", 说明: "点击进入购买页面", 地址: "https://www.qianxun1688.com/liebiao/2BE50B0948BBCBFF" },
-        { 名称: "风清扬下载地址", 说明: "复制到手机浏览器打开", 地址: "https://benc.lanzouv.com/b0fqqmg3e" }
+        { 名称: "风清扬下载地址", 说明: "点击进入", 地址: "https://benc.lanzouv.com/b0fqqmg3e" }
       ],
       视频: [
-        { 名称: "风清扬蓝牙教程", 说明: "用蓝牙点击器操作", 标签: "蓝牙", 封面: "posters/fqy-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoKAVQfUkYYFRgZ" },
-        { 名称: "风清扬无障碍教程", 说明: "不用点击器，无障碍模式", 标签: "无障碍", 封面: "posters/fqy-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoKAVQfUV5CVgVdXA==" }
+        { 名称: "风清扬蓝牙教程", 说明: "点击打开", 标签: "蓝牙", 封面: "posters/fqy-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoKAVQfUkYYFRgZ" },
+        { 名称: "风清扬无障碍教程", 说明: "点击打开", 标签: "无障碍", 封面: "posters/fqy-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoKAVQfUV5CVgVdXA==" }
       ]
     }
   }
