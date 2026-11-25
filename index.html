@@ -399,6 +399,9 @@ function openPlayer(row,v,vi){
   const sources=PROXY_PREFIXES.map(function(p){return p+path;});
   let srcIdx=0;
   let watchTimer=null,lastProgress=0;
+  let settled=false;                 /* 是否已出画面：true 后竞速不再打扰 */
+  const raceAbort=new AbortController();
+  let raceDone=false;
   function loadSrc(){
     fail.style.display="none";
     video.src=sources[srcIdx];
@@ -423,6 +426,66 @@ function openPlayer(row,v,vi){
     else{ spinner.style.display="none"; fail.style.display="flex"; backGuard.allow=true; }
   });
   fail.addEventListener("click",function(){ srcIdx=0; loadSrc(); });
+
+  /* 启动自动竞速：首选源立即播(不延迟)，后台并行探测允许CORS的源，
+     未出画面(settled=false)时发现更快的源就切；CORS被拦/超时的源返回null，
+     不报错、不阻塞，继续留在候选链里由看门狗兜底。 */
+  const PROBE_BYTES=153600, PROBE_TIMEOUT=8000;
+  function probeOne(url){
+    return new Promise(function(resolve){
+      const ctrl=new AbortController();
+      function onAbort(){ ctrl.abort(); }
+      raceAbort.signal.addEventListener("abort",onAbort);
+      const timer=setTimeout(function(){ ctrl.abort(); },PROBE_TIMEOUT);
+      const t0=Date.now();
+      function finish(val){
+        clearTimeout(timer);
+        raceAbort.signal.removeEventListener("abort",onAbort);
+        resolve(val);
+      }
+      if(typeof fetch!=="function"){ finish(null); return; }
+      fetch(url,{headers:{Range:"bytes=0-"+(PROBE_BYTES-1)},signal:ctrl.signal})
+      .then(function(r){
+        if(r.status!==206){ try{ if(r.body) r.body.cancel(); }catch(_){} finish(null); return; }
+        let got=0;
+        if(r.body&&typeof r.body.getReader==="function"){
+          const reader=r.body.getReader();
+          function pump(){
+            reader.read().then(function(chunk){
+              if(chunk.done){ finish(got>0?{speed:got/(Date.now()-t0)}:null); return; }
+              got+=chunk.value?chunk.value.length:0;
+              if(got>=PROBE_BYTES){ try{reader.cancel();}catch(_){} finish({speed:got/(Date.now()-t0)}); }
+              else{ pump(); }
+            }).catch(function(){ finish(null); });
+          }
+          pump();
+        }else{
+          r.arrayBuffer().then(function(buf){
+            got=buf.byteLength;
+            finish(got>0?{speed:got/(Date.now()-t0)}:null);
+          }).catch(function(){ finish(null); });
+        }
+      }).catch(function(){ finish(null); });
+    });
+  }
+  function startRace(){
+    if(typeof fetch!=="function"){ return; }
+    const jobs=sources.map(function(url,i){
+      return probeOne(url).then(function(r){ return {i:i,r:r}; });
+    });
+    Promise.all(jobs).then(function(results){
+      if(raceDone||settled) return;
+      let best=null;
+      results.forEach(function(x){
+        if(x.r&&(!best||x.r.speed>best.r.speed)){ best=x; }
+      });
+      if(!best||best.i===srcIdx||settled) return;
+      srcIdx=best.i;
+      loadSrc();
+      video.play().catch(function(){});
+      showToast("已为你切换到更快线路");
+    }).catch(function(){});
+  }
 
   /* 控制条自动隐藏 */
   let hideTimer=null;
@@ -504,8 +567,8 @@ function openPlayer(row,v,vi){
 
   /* 等待/加载指示 */
   video.addEventListener("waiting",function(){ spinner.style.display="block"; });
-  video.addEventListener("playing",function(){ spinner.style.display="none"; backGuard.allow=true; });
-  video.addEventListener("canplay",function(){ spinner.style.display="none"; backGuard.allow=true; });
+  video.addEventListener("playing",function(){ spinner.style.display="none"; backGuard.allow=true; settled=true; });
+  video.addEventListener("canplay",function(){ spinner.style.display="none"; backGuard.allow=true; settled=true; });
 
   /* 拖动/点击进度条 */
   function ratioFromX(clientX){
@@ -594,6 +657,8 @@ function openPlayer(row,v,vi){
   document.addEventListener("keydown",onKey);
 
   function cleanup(){
+    raceDone=true;
+    try{ raceAbort.abort(); }catch(_){}
     clearInterval(saveTimer);
     clearTimeout(hideTimer);
     clearTimeout(clickTimer);
@@ -622,6 +687,7 @@ function openPlayer(row,v,vi){
   activePlayer=api;
 
   loadSrc();
+  startRace();
   video.play().catch(function(){});
   showBar();
 }
