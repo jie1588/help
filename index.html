@@ -270,9 +270,13 @@ const wrapEl=document.getElementById("sec-wrap");
 
 function openPlayer(row,v,vi){
   if(playerBox && playerBox.dataset.src===v.地址 && playerBox.style.display==="block"){
+    if(activePlayer&&activePlayer.cleanup) activePlayer.cleanup();
     playerBox.remove(); playerBox=null; activePlayer=null; return;
   }
-  if(playerBox){ playerBox.remove(); playerBox=null; }
+  if(playerBox){
+    if(activePlayer&&activePlayer.cleanup) activePlayer.cleanup();
+    playerBox.remove(); playerBox=null;
+  }
 
   const box=document.createElement("div");
   box.className="player-box";
@@ -490,7 +494,7 @@ function openPlayer(row,v,vi){
       showToast("已定位到上次观看 "+fmt(saved));
     }
   });
-  setInterval(function(){
+  const saveTimer=setInterval(function(){
     if(activePlayer===api&&isFinite(video.duration)&&!video.paused&&!video.ended){
       store.set(posKey,video.currentTime);
     }
@@ -519,10 +523,17 @@ function openPlayer(row,v,vi){
   }
   document.addEventListener("keydown",onKey);
 
+  function cleanup(){
+    clearInterval(saveTimer);
+    clearTimeout(hideTimer);
+    clearTimeout(clickTimer);
+    document.removeEventListener("keydown",onKey);
+  }
+
   row.insertAdjacentElement("afterend",box);
   playerBox=box;
 
-  const api={ box, video, showToast };
+  const api={ box, video, showToast, cleanup };
   activePlayer=api;
 
   loadSrc();
