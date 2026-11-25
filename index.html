@@ -140,7 +140,7 @@ const CONFIG = {
   },
   脚本: {
     xh: {
-      名称: "星辉", 标题: "星辉使用说明",
+      名称: "星辉", 标题: "星辉使用说明", 隐藏大标题: true,
       链接: [
         { 名称: "24 小时自助购卡", 说明: "点击进入购买页面", 地址: "https://www.qianxun1688.com/liebiao/32C6BA909E50C258" },
         { 名称: "KK 下载地址", 说明: "复制到手机浏览器打开", 地址: "https://wwsk.lanzouu.com/s/wowkeji" }
@@ -217,6 +217,10 @@ me.图片=S.图片||G.图片;
 
 document.getElementById("t-pill").textContent=me.名称;
 document.getElementById("t-title").textContent=me.标题;
+if(me.隐藏大标题){
+  document.getElementById("t-title").style.display="none";
+  document.getElementById("t-sub").style.display="none";
+}
 document.getElementById("t-sub").textContent=me.副标题;
 document.getElementById("t-tip").textContent=me.提示;
 document.getElementById("t-foot").textContent=me.页脚;
