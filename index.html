@@ -381,8 +381,8 @@ function openPlayer(row,v,vi){
     flash._t=setTimeout(function(){ flash.style.display="none"; },700);
   }
   function nudge(side){
-    const d=isFinite(video.duration)?video.duration:0;
-    let t=Math.max(0,Math.min(d||1e9,video.currentTime+side*10));
+    if(!isFinite(video.duration)||!isFinite(video.currentTime)){ showBar(); return; }
+    let t=Math.max(0,Math.min(video.duration,video.currentTime+side*10));
     video.currentTime=t;
     flashSeek(side,10);
     showBar();
@@ -432,7 +432,7 @@ function openPlayer(row,v,vi){
     const r=rail.getBoundingClientRect();
     return Math.min(1,Math.max(0,(clientX-r.left)/r.width));
   }
-  function seekToRatio(r){ if(video.duration){ video.currentTime=r*video.duration; } }
+  function seekToRatio(r){ if(isFinite(video.duration)){ video.currentTime=r*video.duration; } }
   track.addEventListener("pointerdown",function(e){
     dragging=true; showBar();
     try{ track.setPointerCapture(e.pointerId); }catch(_){}
