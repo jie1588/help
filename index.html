@@ -267,6 +267,8 @@ const store={
 
 let playerBox=null;
 let activePlayer=null;
+/* 返回防闪退：allow=已可播放/已失败(允许返回关闭)；manual=点了左上角关闭 */
+let backGuard={allow:false,manual:false};
 const wrapEl=document.getElementById("sec-wrap");
 
 function closePlayer(){
@@ -275,8 +277,13 @@ function closePlayer(){
   playerBox=null; activePlayer=null;
   document.body.style.overflow="";
 }
-/* 手机物理/手势返回：关闭弹层而不是退出页面 */
-window.addEventListener("popstate",function(){ if(playerBox){ closePlayer(); } });
+/* 手机物理/手势返回：关闭弹层而不是退出页面。
+   加载未完成时浏览器内部(视频助手等)产生的返回信号会造成弹层闪退，此时忽略并补回历史。 */
+window.addEventListener("popstate",function(){
+  if(!playerBox) return;
+  if(backGuard.manual||backGuard.allow){ closePlayer(); return; }
+  try{ history.pushState({helpPlayer:1},""); }catch(e){}
+});
 
 (me.视频||[]).forEach(function(v,vi){
   const row=document.createElement("div");
@@ -296,6 +303,7 @@ function openPlayer(row,v,vi){
     closePlayer(); return;
   }
   if(playerBox){ closePlayer(); }
+  backGuard.allow=false; backGuard.manual=false;
 
   const box=document.createElement("div");
   box.className="player-box";
@@ -404,7 +412,7 @@ function openPlayer(row,v,vi){
   video.addEventListener("error",function(){
     clearInterval(watchTimer);
     if(srcIdx<sources.length-1){ srcIdx++; loadSrc(); }
-    else{ spinner.style.display="none"; fail.style.display="flex"; }
+    else{ spinner.style.display="none"; fail.style.display="flex"; backGuard.allow=true; }
   });
   fail.addEventListener("click",function(){ srcIdx=0; loadSrc(); });
 
@@ -483,8 +491,8 @@ function openPlayer(row,v,vi){
 
   /* 等待/加载指示 */
   video.addEventListener("waiting",function(){ spinner.style.display="block"; });
-  video.addEventListener("playing",function(){ spinner.style.display="none"; });
-  video.addEventListener("canplay",function(){ spinner.style.display="none"; });
+  video.addEventListener("playing",function(){ spinner.style.display="none"; backGuard.allow=true; });
+  video.addEventListener("canplay",function(){ spinner.style.display="none"; backGuard.allow=true; });
 
   /* 拖动/点击进度条 */
   function ratioFromX(clientX){
@@ -599,6 +607,7 @@ function openPlayer(row,v,vi){
 
   closebtn.addEventListener("click",function(e){
     e.stopPropagation();
+    backGuard.manual=true;
     if(history.state&&history.state.helpPlayer){ history.back(); }
     else{ closePlayer(); }
   });
