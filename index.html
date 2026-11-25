@@ -32,9 +32,9 @@
   .play{flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:var(--blue-soft);
     display:flex;align-items:center;justify-content:center;}
   .play svg{width:15px;height:15px;fill:var(--blue);}
-  .row-main{flex:1;min-width:0;}
+  .row-main{flex:0 1 auto;min-width:0;margin-right:auto;display:flex;flex-direction:column;align-items:flex-start;}
   .row-name{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .row-desc{display:inline-block;font-size:12px;line-height:1.5;color:#565b66;margin-top:6px;background:#f1f2f4;
+  .row-desc{align-self:center;font-size:12px;line-height:1.5;color:#565b66;margin-top:6px;background:#f1f2f4;
     padding:2px 12px;border-radius:999px;max-width:100%;box-sizing:border-box;white-space:nowrap;}
   .badge{flex:0 0 auto;font-size:12px;padding:3px 10px;border-radius:20px;background:var(--blue-soft);
     color:var(--blue);font-weight:500;}
@@ -100,9 +100,9 @@
   .link-card:hover{background:#fafbfc;border-color:#aab0b8;}
   .link-card .lk-ico{flex:0 0 auto;width:36px;height:36px;display:flex;align-items:center;justify-content:center;}
   .link-card .lk-ico svg{width:30px;height:30px;display:block;}
-  .link-card .lk-body{flex:1;min-width:0;}
-  .link-card .lk-t{font-size:16px;font-weight:600;}
-  .link-card .lk-d{display:inline-block;font-size:12px;line-height:1.5;color:#565b66;margin-top:6px;background:#f1f2f4;
+  .link-card .lk-body{flex:0 1 auto;min-width:0;margin-right:auto;display:flex;flex-direction:column;align-items:flex-start;}
+  .link-card .lk-t{font-size:16px;font-weight:600;white-space:nowrap;}
+  .link-card .lk-d{align-self:center;font-size:12px;line-height:1.5;color:#565b66;margin-top:6px;background:#f1f2f4;
     padding:2px 12px;border-radius:999px;max-width:100%;box-sizing:border-box;white-space:nowrap;}
   .link-card .arrow{flex:0 0 auto;display:flex;align-items:center;line-height:1;}
   .link-card .arrow svg{width:24px;height:24px;display:block;}
@@ -233,7 +233,7 @@ const EXITFS_SVG='<svg viewBox="0 0 1024 1024"><path d="M384 160v224H160M640 160
 const REPLAY_SVG='<svg viewBox="0 0 1024 1024"><path d="M512 192a320 320 0 1 1-304 224" stroke="#fff" stroke-width="74" fill="none" stroke-linecap="round"/><path d="M208 128v224h224" stroke="#fff" stroke-width="74" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const CLOSE_SVG='<svg viewBox="0 0 1024 1024"><path d="M660 180L340 512l320 332" stroke="#fff" stroke-width="90" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 /* 链接卡图标：购卡=钻石(金色)，下载=云朵下载(深绿) */
-const ICO_GEM='<svg viewBox="0 0 24 24"><path d="M7 3h10l3 4-10 14L4 7l3-4z" fill="#c9962b"/><path d="M4.6 7h14.8" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/><path d="M9.2 3.2L8.2 7l2.5 10.8" stroke="#fff" stroke-width="1.05" fill="none" stroke-linecap="round"/><path d="M14.8 3.2L15.8 7l-2.5 10.8" stroke="#fff" stroke-width="1.05" fill="none" stroke-linecap="round"/></svg>';
+const ICO_GEM='<svg viewBox="0 0 24 24"><path d="M7 3h10l3 5L12 21 4 8l3-5z" fill="#dc2626"/><path d="M4 8h16" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/><path d="M9 3L8 8l4 13" stroke="#fff" stroke-width="1.05" fill="none" stroke-linecap="round"/><path d="M15 3l1 5-4 13" stroke="#fff" stroke-width="1.05" fill="none" stroke-linecap="round"/></svg>';
 const ICO_CLOUD='<svg viewBox="0 0 24 24" fill="#15803d"><path d="M7 18.5a4.2 4.2 0 0 1-.6-8.36 5.2 5.2 0 0 1 9.95-1.25A3.95 3.95 0 0 1 17 18.5H7z"/><path d="M12 9.2v5.2M9.6 12.4L12 14.8l2.4-2.4" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 /* 完整右侧箭头：实心三角头 + 箭杆，替代残缺的字符箭头 */
 const ARROW_SVG='<svg viewBox="0 0 24 24"><path d="M3.5 12h12.6" stroke="#3370ff" stroke-width="2.3" stroke-linecap="round"/><path d="M12.6 5.2L20 12l-7.4 6.8z" fill="#3370ff"/></svg>';
