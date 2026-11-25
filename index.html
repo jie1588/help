@@ -548,7 +548,6 @@ function openPlayer(row,v,vi){
   /* 结束：重播层 */
   video.addEventListener("ended",function(){
     replay.style.display="flex";
-    store.del(posKey);
   });
   replay.addEventListener("click",function(){
     replay.style.display="none";
