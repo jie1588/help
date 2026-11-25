@@ -38,9 +38,16 @@
   .badge{flex:0 0 auto;font-size:12px;padding:3px 10px;border-radius:20px;background:var(--blue-soft);
     color:var(--blue);font-weight:500;}
   .badge.alt{background:#fff4e6;color:#de7802;}
-  .player-box{position:relative;display:none;margin:-4px 0 16px;border:1px solid var(--line);border-radius:8px;
-    overflow:hidden;background:#000;}
-  .player-box video{width:100%;display:block;max-height:80vh;background:#000;object-fit:contain;}
+  .row-arrow{flex:0 0 auto;color:var(--blue);font-size:16px;line-height:1;padding-left:2px;}
+  .player-box{position:fixed;inset:0;display:none;z-index:9999;background:#000;overflow:hidden;}
+  .player-box video{width:100%;height:100%;display:block;background:#000;object-fit:contain;}
+  /* 关闭/返回按钮 */
+  .closebtn{position:absolute;top:calc(12px + env(safe-area-inset-top));left:14px;width:38px;height:38px;
+    border-radius:50%;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;opacity:0;pointer-events:none;transition:opacity .25s;z-index:3;}
+  .closebtn svg{width:22px;height:22px;fill:#fff;}
+  .player-box.bar-on .closebtn{opacity:1;pointer-events:auto;}
+  .closebtn:focus-visible{outline:2px solid var(--blue);outline-offset:1px;}
   /* 自制控制条 */
   .cbar{position:absolute;left:0;right:0;bottom:0;padding:8px 12px calc(8px + env(safe-area-inset-bottom));
     display:flex;align-items:center;gap:8px;opacity:0;transform:translateY(8px);pointer-events:none;
@@ -91,9 +98,9 @@
   .link-card .lk-d{font-size:13px;color:var(--text-3);margin-top:2px;}
   .link-card .arrow{color:var(--blue);font-size:15px;flex:0 0 auto;}
   .foot{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--text-3);}
-  /* 全屏 */
+  /* 系统全屏（桌面） */
   .player-box:fullscreen{border:none;border-radius:0;}
-  .player-box:fullscreen video{max-height:none;height:100%;}
+  .player-box:fullscreen video{height:100%;}
   .player-box:-webkit-full-screen{border:none;border-radius:0;}
   @media (max-width:520px){
     .wrap{padding:26px 14px 48px;}
@@ -113,7 +120,7 @@
   <p class="sub" id="t-sub"></p>
   <div class="tip" id="t-tip"></div>
 
-  <div class="h2" id="v-head">操作视频</div>
+  <div class="h2" id="v-head">视频教程</div>
   <div id="sec-wrap"></div>
 
   <div id="img-sec" style="display:none">
@@ -141,14 +148,14 @@ const CONFIG = {
   },
   脚本: {
     xh: {
-      名称: "星辉", 标题: "星辉使用说明", 隐藏大标题: true,
+      名称: "星辉", 标题: "星辉使用说明",
       链接: [
         { 名称: "24 小时自助购卡", 说明: "点击进入购买页面", 地址: "https://www.qianxun1688.com/liebiao/32C6BA909E50C258" },
         { 名称: "星辉下载地址", 说明: "点击进入", 地址: "https://wwsk.lanzouu.com/s/wowkeji" }
       ],
       视频: [
-        { 名称: "星辉蓝牙教程", 说明: "点击打开", 标签: "蓝牙", 封面: "posters/xh-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoUGABQRBxbCFw=" },
-        { 名称: "星辉无障碍教程", 说明: "点击打开", 标签: "无障碍", 封面: "posters/xh-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoUGABTXEYYFRgZ" }
+        { 名称: "星辉蓝牙教程", 说明: "点击查看视频教程", 标签: "蓝牙", 封面: "posters/xh-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoUGABQRBxbCFw=" },
+        { 名称: "星辉无障碍教程", 说明: "点击查看视频教程", 标签: "无障碍", 封面: "posters/xh-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoUGABTXEYYFRgZ" }
       ]
     },
     tx: {
@@ -158,8 +165,8 @@ const CONFIG = {
         { 名称: "天蝎下载地址", 说明: "点击进入", 地址: "https://wwtf.lanzoup.com/b004ilbuzg" }
       ],
       视频: [
-        { 名称: "天蝎蓝牙教程", 说明: "点击打开", 标签: "蓝牙", 封面: "posters/tx-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoYCABQRBxbCFw=" },
-        { 名称: "天蝎无障碍教程", 说明: "点击打开", 标签: "无障碍", 封面: "posters/tx-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoYCABTXEYYFRgZ" }
+        { 名称: "天蝎蓝牙教程", 说明: "点击查看视频教程", 标签: "蓝牙", 封面: "posters/tx-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoYCABQRBxbCFw=" },
+        { 名称: "天蝎无障碍教程", 说明: "点击查看视频教程", 标签: "无障碍", 封面: "posters/tx-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoYCABTXEYYFRgZ" }
       ]
     },
     jj: {
@@ -169,8 +176,8 @@ const CONFIG = {
         { 名称: "掘金小能手下载地址", 说明: "点击进入", 地址: "https://wwyg.lanzoup.com/b00q0ku0kd" }
       ],
       视频: [
-        { 名称: "掘金小能手蓝牙教程", 说明: "点击打开", 标签: "蓝牙", 封面: "posters/jj-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoGGgBQRBxbCFw=" },
-        { 名称: "掘金小能手无障碍教程", 说明: "点击打开", 标签: "无障碍", 封面: "posters/jj-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoGGgBTXEYYFRgZ" }
+        { 名称: "掘金小能手蓝牙教程", 说明: "点击查看视频教程", 标签: "蓝牙", 封面: "posters/jj-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoGGgBQRBxbCFw=" },
+        { 名称: "掘金小能手无障碍教程", 说明: "点击查看视频教程", 标签: "无障碍", 封面: "posters/jj-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoGGgBTXEYYFRgZ" }
       ]
     },
     lbt: {
@@ -180,8 +187,8 @@ const CONFIG = {
         { 名称: "萝卜头下载地址", 说明: "点击进入", 地址: "https://share.feijipan.com/s/h5Ht4o9a" }
       ],
       视频: [
-        { 名称: "萝卜头蓝牙教程", 说明: "点击打开", 标签: "蓝牙", 封面: "posters/lbt-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoAElkfUkYYFRgZ" },
-        { 名称: "萝卜头无障碍教程", 说明: "点击打开", 标签: "无障碍", 封面: "posters/lbt-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoAElkfUV5CVgVdXA==" }
+        { 名称: "萝卜头蓝牙教程", 说明: "点击查看视频教程", 标签: "蓝牙", 封面: "posters/lbt-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoAElkfUkYYFRgZ" },
+        { 名称: "萝卜头无障碍教程", 说明: "点击查看视频教程", 标签: "无障碍", 封面: "posters/lbt-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoAElkfUV5CVgVdXA==" }
       ]
     },
     fqy: {
@@ -191,8 +198,8 @@ const CONFIG = {
         { 名称: "风清扬下载地址", 说明: "点击进入", 地址: "https://benc.lanzouv.com/b0fqqmg3e" }
       ],
       视频: [
-        { 名称: "风清扬蓝牙教程", 说明: "点击打开", 标签: "蓝牙", 封面: "posters/fqy-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoKAVQfUkYYFRgZ" },
-        { 名称: "风清扬无障碍教程", 说明: "点击打开", 标签: "无障碍", 封面: "posters/fqy-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoKAVQfUV5CVgVdXA==" }
+        { 名称: "风清扬蓝牙教程", 说明: "点击查看视频教程", 标签: "蓝牙", 封面: "posters/fqy-bt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoKAVQfUkYYFRgZ" },
+        { 名称: "风清扬无障碍教程", 说明: "点击查看视频教程", 标签: "无障碍", 封面: "posters/fqy-alt.jpg", 地址: "EBxZGBZWXwJVWUZeDQoDCwoBX0dbVQMDQFACAAAAAAJAVV5TGRtIG0oIH1pcXF1XHEdbWUoKAVQfUV5CVgVdXA==" }
       ]
     }
   }
@@ -206,6 +213,7 @@ const VOL_SVG='<svg viewBox="0 0 1024 1024"><path d="M448 256L256 416H128v192h12
 const FS_SVG='<svg viewBox="0 0 1024 1024"><path d="M160 384V160h224M864 384V160H640M160 640v224h224M864 640v224H640" stroke="#fff" stroke-width="60" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const EXITFS_SVG='<svg viewBox="0 0 1024 1024"><path d="M384 160v224H160M640 160v224h224M384 864V640H160M640 864V640h224" stroke="#fff" stroke-width="60" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const REPLAY_SVG='<svg viewBox="0 0 1024 1024"><path d="M512 192a320 320 0 1 1-304 224" stroke="#fff" stroke-width="74" fill="none" stroke-linecap="round"/><path d="M208 128v224h224" stroke="#fff" stroke-width="74" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const CLOSE_SVG='<svg viewBox="0 0 1024 1024"><path d="M660 180L340 512l320 332" stroke="#fff" stroke-width="90" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
 const params=new URLSearchParams(location.search);
@@ -218,10 +226,8 @@ me.图片=S.图片||G.图片;
 
 document.getElementById("t-pill").textContent=me.名称;
 document.getElementById("t-title").textContent=me.标题;
-if(me.隐藏大标题){
-  document.getElementById("t-title").style.display="none";
-  document.getElementById("t-sub").style.display="none";
-}
+document.getElementById("t-title").style.display="none";
+document.getElementById("t-sub").style.display="none";
 document.getElementById("t-sub").textContent=me.副标题;
 document.getElementById("t-tip").textContent=me.提示;
 document.getElementById("t-foot").textContent=me.页脚;
@@ -261,6 +267,15 @@ let playerBox=null;
 let activePlayer=null;
 const wrapEl=document.getElementById("sec-wrap");
 
+function closePlayer(){
+  if(activePlayer&&activePlayer.cleanup) activePlayer.cleanup();
+  if(playerBox){ playerBox.remove(); }
+  playerBox=null; activePlayer=null;
+  document.body.style.overflow="";
+}
+/* 手机物理/手势返回：关闭弹层而不是退出页面 */
+window.addEventListener("popstate",function(){ if(playerBox){ closePlayer(); } });
+
 (me.视频||[]).forEach(function(v,vi){
   const row=document.createElement("div");
   row.className="row";
@@ -268,20 +283,17 @@ const wrapEl=document.getElementById("sec-wrap");
   row.innerHTML='<div class="play">'+PLAY_SVG+'</div>'+
     '<div class="row-main"><div class="row-name">'+esc(v.名称)+'</div>'+
     '<div class="row-desc">'+esc(v.说明)+'</div></div>'+
-    '<div class="'+cls+'">'+esc(v.标签)+'</div>';
+    '<div class="'+cls+'">'+esc(v.标签)+'</div>'+
+    '<div class="row-arrow">→</div>';
   row.addEventListener("click",function(){ openPlayer(row,v,vi); });
   wrapEl.appendChild(row);
 });
 
 function openPlayer(row,v,vi){
   if(playerBox && playerBox.dataset.src===v.地址 && playerBox.style.display==="block"){
-    if(activePlayer&&activePlayer.cleanup) activePlayer.cleanup();
-    playerBox.remove(); playerBox=null; activePlayer=null; return;
+    closePlayer(); return;
   }
-  if(playerBox){
-    if(activePlayer&&activePlayer.cleanup) activePlayer.cleanup();
-    playerBox.remove(); playerBox=null;
-  }
+  if(playerBox){ closePlayer(); }
 
   const box=document.createElement("div");
   box.className="player-box";
@@ -312,6 +324,11 @@ function openPlayer(row,v,vi){
   const replay=document.createElement("div"); replay.className="replay";
   replay.innerHTML='<div class="rb">'+REPLAY_SVG+'</div>';
   const toast=document.createElement("div"); toast.className="toast";
+  const closebtn=document.createElement("div");
+  closebtn.className="closebtn";
+  closebtn.setAttribute("role","button");
+  closebtn.setAttribute("aria-label","返回关闭");
+  closebtn.innerHTML=CLOSE_SVG;
 
   box.appendChild(video);
   box.appendChild(spinner);
@@ -320,6 +337,7 @@ function openPlayer(row,v,vi){
   box.appendChild(replay);
   box.appendChild(toast);
   box.appendChild(cbar);
+  box.appendChild(closebtn);
 
   const playbtn=cbar.querySelector(".playbtn");
   const track=cbar.querySelector(".track");
@@ -338,12 +356,22 @@ function openPlayer(row,v,vi){
   const path=_d(v.地址);
   const sources=PROXY_PREFIXES.map(function(p){return p+path;});
   let srcIdx=0;
+  let metaTimer=null;
   function loadSrc(){
     fail.style.display="none";
     video.src=sources[srcIdx];
     video.load();
+    clearTimeout(metaTimer);
+    /* 初始加载看门：10 秒还没读到元数据，判定该源卡顿，切下一个 */
+    metaTimer=setTimeout(function(){
+      if(video.readyState<1){
+        if(srcIdx<sources.length-1){ srcIdx++; loadSrc(); }
+      }
+    },10000);
   }
+  video.addEventListener("loadedmetadata",function(){ clearTimeout(metaTimer); });
   video.addEventListener("error",function(){
+    clearTimeout(metaTimer);
     if(srcIdx<sources.length-1){ srcIdx++; loadSrc(); }
     else{ spinner.style.display="none"; fail.style.display="flex"; }
   });
@@ -381,8 +409,8 @@ function openPlayer(row,v,vi){
     flash._t=setTimeout(function(){ flash.style.display="none"; },700);
   }
   function nudge(side){
-    const d=isFinite(video.duration)?video.duration:0;
-    let t=Math.max(0,Math.min(d||1e9,video.currentTime+side*10));
+    if(!isFinite(video.duration)||!isFinite(video.currentTime)){ showBar(); return; }
+    let t=Math.max(0,Math.min(video.duration,video.currentTime+side*10));
     video.currentTime=t;
     flashSeek(side,10);
     showBar();
@@ -432,7 +460,7 @@ function openPlayer(row,v,vi){
     const r=rail.getBoundingClientRect();
     return Math.min(1,Math.max(0,(clientX-r.left)/r.width));
   }
-  function seekToRatio(r){ if(video.duration){ video.currentTime=r*video.duration; } }
+  function seekToRatio(r){ if(isFinite(video.duration)){ video.currentTime=r*video.duration; } }
   track.addEventListener("pointerdown",function(e){
     dragging=true; showBar();
     try{ track.setPointerCapture(e.pointerId); }catch(_){}
@@ -532,10 +560,19 @@ function openPlayer(row,v,vi){
     clearInterval(saveTimer);
     clearTimeout(hideTimer);
     clearTimeout(clickTimer);
+    clearTimeout(metaTimer);
     document.removeEventListener("keydown",onKey);
   }
 
-  row.insertAdjacentElement("afterend",box);
+  closebtn.addEventListener("click",function(e){
+    e.stopPropagation();
+    if(history.state&&history.state.helpPlayer){ history.back(); }
+    else{ closePlayer(); }
+  });
+
+  document.body.appendChild(box);
+  document.body.style.overflow="hidden";
+  try{ history.pushState({helpPlayer:1},""); }catch(e){}
   playerBox=box;
 
   const api={ box, video, showToast, cleanup };
